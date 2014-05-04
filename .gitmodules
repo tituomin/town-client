@@ -1,0 +1,3 @@
+[submodule "kenenkaupunki-design"]
+	path = kenenkaupunki-design
+	url = git@github.com:tituomin/kenenkaupunki-design.git

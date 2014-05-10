@@ -14,8 +14,14 @@
   [id]
   (log "adding map ")
   (log id)
-  (let [map-opts (clj->js {"center" (google.maps.LatLng. lat lon)
-                           "zoom" 11})
+  (let [map-opts #js{"center" (google.maps.LatLng. lat lon)
+                     "zoom" 11
+                     "panControl" false
+                     "zoomControl" true
+                     "mapTypeControl" false
+                     "scaleControl" false
+                     "streetViewControl" false
+                     "overviewMapControl" false }
         el (sel1 (str ".map-ranking-content#" id " " ".g-mapcanvas"))
         map (google.maps.Map. el map-opts)]
     (swap! maps assoc id map)
@@ -28,10 +34,23 @@
 (defn color
   [key]
   (condp = key
-    "paikka-tai-alue-asuinrakentamiselle" "blue"
-    "alue-ei-ole-virkistykselle-valttamaton-paikalle-voisi-rakentaa" "red"
-    "green"
+   ;"#ef889d"
+
+    "paikka-tai-alue-asuinrakentamiselle" "#363636"
+    "alue-ei-ole-virkistykselle-valttamaton-paikalle-voisi-rakentaa" "#708f38"
+
+    "paikka-toimistoille-palveluille-tai-liiketiloille" "#363636"
+    "taalla-pitaisi-olla-enemman-kauppoja-ja-palveluita-rakennusten-kivijaloissa" "#990000"
+
+    "virkistyksellisesti-tarkea-mutta-saisi-olla-laadultaan-parempi" "#000099"
+    "taalla-on-tallaisenaan-ainutlaatuista-kaupunkiluontoa" "#363636"
+
+    "taalla-ymparisto-nayttaa-ankealta-ja-sita-pitaisi-parantaa-esimerkiksi-puuistutuksin" "#e2591b"
+    "huonosti-hoidettu-epamaarainen-alue-jota-tulisi-parantaa" "#363636"
+
+    "black"
     ))
+
 
 (defn add-data
   [data]
@@ -47,8 +66,12 @@
                    (fn [feature]
                      (let [text (.getProperty feature "text_content")
                            category (.getProperty feature "category")]
-                       (clj->js {:title (if (> (count text) 0) text category)
-                                 :icon (icon (color category))}))))))))
+                       #js{:title (if (> (count text) 0) text category)
+                           :icon #js{:path google.maps.SymbolPath.CIRCLE
+                                     :scale 3
+                                     :fillColor (color category)
+                                     :strokeWeight 0
+                                     :fillOpacity 1} })))))))
 
 (defn init
   []

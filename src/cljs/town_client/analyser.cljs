@@ -4,9 +4,11 @@
 
 (defn counts
   [values]
-  (reduce (fn [results value]
-            (assoc results (or value 0)
-                   (inc (or (results (or value 0)) 0))))
+  (reduce
+   (fn [results key]
+     (let [key     (or key 0)
+           current (or (results key) 0)]
+       (assoc results key (inc current))))
     {} values))
 
 (defn enum-proportions [respondents key]

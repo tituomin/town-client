@@ -56,7 +56,7 @@
   (let [id (neighborhood "id")
         genetive-form (language/citizen-genetive ((neighborhood "name") "fi"))]
     (dm/set-text! (sel1 :.header-area) genetive-form)
-    (dm/set-text! (sel1 "title") (str genetive-form " kaupunki 2015"))
+    (dm/set-text! (sel1 "title") (str genetive-form " kaupunki 2050"))
     (doseq [key [:prev :next]]
       (set! (.-href (sel1 (str ".header-link-" (name key) " a")))
             (str "#" (key (neighborhoods id)))))))

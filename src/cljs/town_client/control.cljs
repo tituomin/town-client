@@ -21,7 +21,6 @@
   (fetch-data channel "answers" {:category category :respondent__neighborhood nid}))
 
 (defn handle-user-input [intent data-channel user-channel]
-  (log "Handling intent")
   (condp = (:type intent)
     :newlocation
     (let [nid (:location intent)]
@@ -35,11 +34,9 @@
   [category]
   (first (first (filter (fn [[k v]] (v category)) aggregates))))
 
-; todo better way
 (def app-state (atom {}))
 
 (defn category [data]
-  (log "category")
   (if (or (nil? data) (empty? (data "features")))
     nil
     (((-> (data "features")
@@ -117,8 +114,6 @@
                                aggregate-keys
                                new-keys)
            new-data           (assoc-in data [aggregate-id category] val)]
-       (log (str "aggregate " (if aggregate-complete? "complete" "incomplete")))
-       (log (str "got some partial data" " key " category " agg-id " aggregate-id))
        (if aggregate-complete?
          (do
            (>! complete-channel {:resource-type :answer-aggregate

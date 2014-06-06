@@ -1,7 +1,11 @@
 (ns town-client.util)
 
-(defn log [msg] (.log js/console msg))
-(defn log-v [v] (.log js/console (pr-str v)))
+(defn log-internal [message]
+  (if (= (type js/console) js/Object)
+    (.log js/console message)))
+
+(defn log [msg] (log-internal msg))
+(defn log-v [v] (log-internal (pr-str v)))
 
 (defn make-js-object
   "makes a javascript map from a clojure one"

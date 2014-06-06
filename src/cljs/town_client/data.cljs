@@ -3,7 +3,7 @@
    [goog.net.XhrIo]
    [town-client.util :refer [log]]
    [town-client.config :as config]
-   [cemerick.url :refer [url url-encode]]
+   [cemerick.url :refer [url url-encode map->query]]
    [cljs.core.async :as async
     :refer [<! >! chan close! sliding-buffer put! alts! timeout]])
   (:require-macros [cljs.core.async.macros :as m :refer [go alt!]]))
@@ -30,8 +30,11 @@
 
 (defn fetch-data
   [channel type params & path-elements]
-  (.send goog.net.XhrIo 
-         (-> (apply url (reduce conj [config/url-base type] path-elements))
-             (assoc :query (assoc params :page_size (or (:page_size params) 100)))
-             str)
-         (feed-channel channel type path-elements)))
+  (let [url-string (if (empty? path-elements)
+                     (str config/url-base type "/?")
+                     (str config/url-base type "/" (clojure.string/join "/" path-elements) "?"))]
+    (.send goog.net.XhrIo 
+           (str url-string (map->query (assoc params :page_size (or (:page_size params) 100))))
+         (feed-channel channel type path-elements)
+         "GET" nil
+         #js{"Accept" "application/json"})))

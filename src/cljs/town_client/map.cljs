@@ -12,8 +12,6 @@
 
 (defn add-map!
   [id]
-  (log "adding map ")
-  (log id)
   (let [map-opts #js{"center" (google.maps.LatLng. lat lon)
                      "zoom" 11
                      "panControl" false
@@ -51,6 +49,9 @@
     "black"
     ))
 
+(defn browser-is-ie
+  []
+  (= (.-appName js/navigator) "Microsoft Internet Explorer"))
 
 (defn add-data
   [data]
@@ -58,8 +59,6 @@
     (let 
         [key (:key data)
          map (or (@maps key) (add-map! (name key)))]
-      (log "adding data")
-      (log key)
       (doseq [obj (vals (data :results))]
         (.addGeoJson (.-data map) obj)
         (.setStyle (.-data map)

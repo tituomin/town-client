@@ -64,13 +64,15 @@
         (.setStyle (.-data map)
                    (fn [feature]
                      (let [text (.getProperty feature "text_content")
-                           category (.getProperty feature "category")]
-                       #js{:title (if (> (count text) 0) text category)
-                           :icon #js{:path google.maps.SymbolPath.CIRCLE
-                                     :scale 3
-                                     :fillColor (color category)
-                                     :strokeWeight 0
-                                     :fillOpacity 1} })))))))
+                           category (.getProperty feature "category")
+                           marker #js{:title (if (> (count text) 0) text category)}]
+                       (if (not (browser-is-ie))
+                         (set! (.-icon marker) #js{:path google.maps.SymbolPath.CIRCLE
+                                               :scale 3
+                                               :fillColor (color category)
+                                               :strokeWeight 0
+                                               :fillOpacity 1}))
+                       marker)))))))
 
 (defn init
   []

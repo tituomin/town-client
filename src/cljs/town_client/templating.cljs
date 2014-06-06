@@ -35,17 +35,21 @@
      (render template params)))))
 
 
-(defn neighborhood-options [neighborhoods]
+(defn neighborhood-options [neighborhoods selected]
   (map (fn [n]
-         (node [:option {:value (:id n)} (:name n)]))
+         (node [:option
+                ^:attrs (if (= (:id n) (js/parseInt selected))
+                          {:value (:id n) :selected :selected}
+                          {:value (:id n)})
+                (:name n)]))
        neighborhoods))
        
 (defn choose-neighborhood [id]
   (aset (.-location js/window) "hash" id))
 
-(defn populate-neighborhood-menu [neighborhoods]
+(defn populate-neighborhood-menu [neighborhoods selected]
   (let [dropdown (sel1 :.navigate-areas)
-        options  (neighborhood-options neighborhoods)]
+        options  (neighborhood-options neighborhoods selected)]
     (dm/clear! dropdown)
     (doseq [no options]
       (dm/append! dropdown no))
@@ -104,14 +108,8 @@
 
 (defn reinit-page
   [user-channel]
-  (apply-template (sel1 ".page div") {} "kaupunginosa")
-  ;; (doseq [placeholder (sel "div[data-placeholder=\"true\"]")]
-  ;;     (apply-template placeholder {}))
-
-  )
+  (apply-template (sel1 ".page div") {} "kaupunginosa"))
 
 (defn init [channel]
-  (log "Init templating.")
   (add-event-handlers channel)
-  (apply-template (sel1 ".site-header div") {} "site-header")
-)
+  (apply-template (sel1 ".site-header div") {} "site-header"))

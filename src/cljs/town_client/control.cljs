@@ -52,9 +52,11 @@
       ; no id, got all neighborhoods
       (let [neighborhoods
             (sort-by #(:name %)
-                     (map
-                      (fn [n] {:name ((n "name") "fi") :id (n "id")})
-                      (:results data)))
+                     (filter
+                      #(not (= "Aluemeri" (:name %)))
+                      (map
+                       (fn [n] {:name ((n "name") "fi") :id (n "id")})
+                       (:results data))))
 
             neighborhood-map
             (apply hash-map (flatten

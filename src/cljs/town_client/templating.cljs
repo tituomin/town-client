@@ -23,10 +23,6 @@
    "age_low"                     "age"
   })
 
-  ;; (log "apply-template")
-  ;; (log-v params)
-  ;; (log dom-el)
-
 (defn apply-template
   ([dom-el params]
   (apply-template dom-el params (dm/attr dom-el :data-template)))
@@ -57,7 +53,6 @@
                 #(choose-neighborhood (-> % .-target .-value)))))
 
 (defn output-neighborhood [neighborhood neighborhoods]
-  (log "output-neighborhood")
   (let [id (neighborhood "id")
         genetive-form (language/citizen-genetive ((neighborhood "name") "fi"))]
     (dm/set-text! (sel1 :.header-area) genetive-form)
@@ -72,7 +67,6 @@
     (to-snake k)))
 
 (defn output-stats [respondent-count answers]
-  (log "output-stats")
   (doseq [[key values] answers]
     (let [templatekey (stat-templates key)
           placeholder (sel1 (str "div[data-template=\""
@@ -90,8 +84,6 @@
   (if key
     (let [list (take 5 (sort-by (fn [x]
                                   (- (:count x))) stats))]
-      (log "here")
-      (log key)
       (apply-template
        (sel1 (str "#" (name key) ".map-ranking-content .g-rankingarea div"))
        {:rankings

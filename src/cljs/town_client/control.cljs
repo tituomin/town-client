@@ -45,7 +45,7 @@
     (((-> (data "features")
         first) "properties") "category")))
 
-(defn handle-new-data [data incomplete-channel]
+(defn handle-new-data [data incomplete-channel user-channel]
   (condp = (:resource-type data)
     :divisions
     (if (:results data)
@@ -73,7 +73,14 @@
 
 
         (swap! app-state assoc :neighborhoods neighborhood-map)
-        (tmpl/populate-neighborhood-menu neighborhoods))
+        (let [init-hash (-> js/window .-location .-hash)]
+          (if (not (clojure.string/blank? init-hash))
+            (do (tmpl/populate-neighborhood-menu neighborhoods (subs init-hash 1))
+                (async/put!
+                 user-channel
+                 (tmpl/neighborhood-intent
+                  (subs init-hash 1))))
+            (tmpl/populate-neighborhood-menu neighborhoods nil))))
       ; specific neighborhood
       (tmpl/output-neighborhood data (@app-state :neighborhoods)))
 
@@ -133,7 +140,7 @@
       (while true
         (let [[value c] (alts! [user-channel data-channel])]
           (condp = c
-            data-channel (handle-new-data value incomplete-channel)
+            data-channel (handle-new-data value incomplete-channel user-channel)
             user-channel (handle-user-input value data-channel user-channel)))))))
 
 (init)

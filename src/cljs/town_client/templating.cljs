@@ -97,16 +97,18 @@
        {:rankings
         (apply str (for [x list] (str "<li class=\"rankingarea\">" (:name x) " " (:count x) "</li>")))}))))
 
+(defn neighborhood-intent [id]
+  {:type :newlocation, :location id })
+
 (defn add-event-handlers [channel]
   (dm/listen!
    js/window "hashchange"
    #(async/put!
-     channel 
-     { :type :newlocation,
-       :location
-      (apply str 
-             (-> % .-currentTarget
-                 .-location .-hash rest))})))
+     channel
+     (neighborhood-intent
+      (subs
+       (-> % .-currentTarget
+           .-location .-hash) 1)))))
 
 (defn reinit-page
   [user-channel]

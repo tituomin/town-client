@@ -137,5 +137,3 @@
           (condp = c
             data-channel (handle-new-data value incomplete-channel user-channel)
             user-channel (handle-user-input value data-channel user-channel)))))))
-
-(init)

@@ -2,7 +2,7 @@
   :description "FIXME: write this!"
   :url "http://example.com/FIXME"
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [org.clojure/clojurescript "0.0-2202"]
+                 [org.clojure/clojurescript "0.0-2234"]
                  [prismatic/dommy "0.1.2"]
                  [com.cemerick/url "0.1.1"]
                  [org.clojure/core.async "0.1.298.0-2a82a1-alpha"]
@@ -10,9 +10,10 @@
                  [ring "1.2.1"]]
   :plugins [[lein-cljsbuild "1.0.3"]
             [lein-ring "0.8.10"]]
+  :repl-options {:init-ns town-client.control}
   :jvm-opts ["-Xmx2g"]
   :hooks [leiningen.cljsbuild]
-  :source-paths ["src/clj"]
+  :source-paths ["src/clj" "src/cljs"]
   :cljsbuild { 
     :builds {
       :main {

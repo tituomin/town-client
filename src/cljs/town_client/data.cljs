@@ -34,9 +34,8 @@
                         (if (not-empty path-elements)
                           (clojure.string/join "/" path-elements))
                         (if (not-empty real-params)
-                          "?"))
-        url (str url-string (map->query real-params))]
-    url))
+                          "?"))]
+    (str url-string (map->query real-params))))
 
 (defn get-data [type params path-elements callback]
   (.send goog.net.XhrIo

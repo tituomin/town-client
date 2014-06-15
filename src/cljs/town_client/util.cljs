@@ -1,7 +1,7 @@
 (ns town-client.util)
 
 (defn log-internal [message]
-  (if (= (type js/console) js/Object)
+  (if-not (undefined? js/window.console)
     (.log js/console message)))
 
 (defn log [msg] (log-internal msg))

@@ -34,7 +34,7 @@
          (if (seq all-params) "?")
          (map->query all-params))))
 
-(defn get-data [type params path-elements data-channel]
+(defn fetch-data [data-channel type params & path-elements]
   (go
     (let [channels (ajax/make-request
                     (api-url type params path-elements))
@@ -46,9 +46,6 @@
                            ["Error fetching"
                             type params path-elements
                             "status" (:status value)]))))))
-
-(defn fetch-data [channel type params & path-elements]
-  (get-data type params path-elements channel))
 
 #_(
   ; REPL interaction

@@ -49,8 +49,7 @@
     "black"
     ))
 
-(defn browser-is-ie
-  []
+(defn browser-is-ie []
   (= (.-appName js/navigator) "Microsoft Internet Explorer"))
 
 (defn add-data
@@ -67,11 +66,12 @@
                            category (.getProperty feature "category")
                            marker #js{:title (if (> (count text) 0) text category)}]
                        (if (not (browser-is-ie))
-                         (set! (.-icon marker) #js{:path google.maps.SymbolPath.CIRCLE
-                                               :scale 3
-                                               :fillColor (color category)
-                                               :strokeWeight 0
-                                               :fillOpacity 1}))
+                         (set! (.-icon marker)
+                               #js{:path google.maps.SymbolPath.CIRCLE
+                                   :scale 3
+                                   :fillColor (color category)
+                                   :strokeWeight 0
+                                   :fillOpacity 1}))
                        marker)))))))
 
 (defn init

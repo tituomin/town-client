@@ -8,24 +8,16 @@
     :refer [<! >! chan close! sliding-buffer put! alts! timeout]])
   (:require-macros [cljs.core.async.macros :as m :refer [go alt!]]))
 
-(defn listen [object eventtype callback]
-  (.listen goog.events object eventtype callback))
-
 (def default-headers
   #js{"Accept" "application/json"})
 
 (def pool
   (goog.net.XhrIoPool. default-headers))
 
-(defn parse-response []
-  nil)
-
 (defn handle-response [xhr success failure]
   (if (.isSuccess xhr)
-    (do
-      (async/put! success (.getResponseJson xhr)))
-    (do
-      (async/put! failure {:status (.getStatus xhr)})))
+      (async/put! success (.getResponseJson xhr))
+      (async/put! failure {:status (.getStatus xhr)}))
   (.releaseObject pool xhr))
 
 (defn response-handler [success failure]

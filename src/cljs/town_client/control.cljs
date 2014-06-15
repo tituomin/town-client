@@ -43,9 +43,9 @@
         first) "properties") "category")))
 
 (defn handle-new-data [data incomplete-channel user-channel]
-  (condp = (:resource-type data)
+  (case (:resource-type data)
     :divisions
-    (if (:results data)
+    (if (< 1 (count (:results data)))
       ; no id, got all neighborhoods
       (let [neighborhoods
             (sort-by #(:name %)
@@ -79,7 +79,7 @@
                   (subs init-hash 1))))
             (tmpl/populate-neighborhood-menu neighborhoods nil))))
       ; specific neighborhood
-      (tmpl/output-neighborhood data (@app-state :neighborhoods)))
+      (tmpl/output-neighborhood (first (:results data)) (@app-state :neighborhoods)))
 
     :respondents
     (tmpl/output-stats (count (:results data)) (into {} (for [key
@@ -89,13 +89,11 @@
 
     :answer-aggregate
     (do
-        (map/add-data data)
-        (tmpl/output-map-stats (analyser/map-stats data (@app-state :neighborhoods)) (:key data)))
+      (map/add-data data)
+      (tmpl/output-map-stats (analyser/map-stats data (@app-state :neighborhoods)) (:key data)))
 
-    nil ; incomplete answers, to be aggregated
-    (async/put! incomplete-channel data)
-    
-))
+    :answers ; incomplete answers, to be aggregated
+      (async/put! incomplete-channel (:results data))))
 
 
 (defn receive-partial-data
@@ -104,7 +102,6 @@
    (loop [received-keys #{}
           data {}]
      (let [val (<! channel)
-
            cdata              (js->clj val)
            category           (category cdata)
            aggregate-id       (keyword (category-to-map-id category))
@@ -123,8 +120,7 @@
                   (dissoc data aggregate-id)))
          (recur new-keys new-data))))))
 
-(defn init
-  []
+(defn init []
   (let [data-channel (chan)
         user-channel (chan)
         incomplete-channel (chan)]

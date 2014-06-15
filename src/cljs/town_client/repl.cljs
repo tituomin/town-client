@@ -6,4 +6,6 @@
              :refer [<! >! chan close! sliding-buffer put! alts! timeout]])
   (:require-macros [cljs.core.async.macros :as m :refer [go alt!]]))
 
-;(cemerick.austin.repls/exec)
+#_(
+  (cemerick.austin.repls/exec)
+  )

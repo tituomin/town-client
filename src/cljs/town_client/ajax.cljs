@@ -43,8 +43,7 @@
                            (response-handler success failure))
                   (.setTimeoutInterval xhrio 0)
                   (.send xhrio url "GET")))
-    {:success success
-     :failure failure}))
+    [success failure]))
 
 (comment
   ; REPL interaction

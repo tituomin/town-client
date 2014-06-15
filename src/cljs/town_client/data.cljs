@@ -6,6 +6,7 @@
    [town-client.ajax :as ajax]
    [town-client.config :as config]
    [cemerick.url :refer [url url-encode map->query]]
+   [clojure.string :refer [join]]
    [cljs.core.async :as async
     :refer [<! >! chan close! sliding-buffer put! alts! timeout]])
   (:require-macros [cljs.core.async.macros :as m :refer [go alt!]]))
@@ -13,38 +14,41 @@
 (defn to-clj [value]
   (map #(js->clj % {:keywordize-keys true}) value))
 
-(defn feed-channel [channel type path]
-  (fn [reply-value]
-    (let [res-type (keyword type)
-          object (.getResponseJson (.-target reply-value))
-          value (if (array? object)
-                  (js->clj object)
-                  [object])]
-      (put! channel
-            (assoc {:resource-type res-type}
-              :results
-              (if (= res-type :answers)
-                object
-                (to-clj value)))))))
+(defn data-value [object type]
+  (let [res-type (keyword type)
+        value (if (array? object)
+                (js->clj object)
+                [object])]
+    (assoc {:resource-type res-type}
+      :results
+      (if (= res-type :answers)
+        object ; Map answers are delivered as-is to Google Maps.
+        (to-clj value)))))
 
 (defn api-url [type params path-elements]
   (let [defaults {:page_size 100}
-        real-params (merge defaults params)
-        url-string (str config/url-base type "/"
-                        (if (not-empty path-elements)
-                          (clojure.string/join "/" path-elements))
-                        (if (not-empty real-params)
-                          "?"))]
-    (str url-string (map->query real-params))))
+        all-params (merge defaults params)
+        path (concat [config/url-base type] path-elements)]
+    (str (join "/" path)
+         (if-not (seq path-elements) "/")
+         (if (seq all-params) "?")
+         (map->query all-params))))
 
-(defn get-data [type params path-elements callback]
-  (.send goog.net.XhrIo
-         (api-url type params path-elements)
-         callback "GET" nil))
+(defn get-data [type params path-elements data-channel]
+  (go
+    (let [channels (ajax/make-request
+                    (api-url type params path-elements))
+          [success failure] channels
+          [value channel] (alts! channels)]
+      (condp = channel
+        success (put! data-channel (data-value value type))
+        failure (log (join " "
+                           ["Error fetching"
+                            type params path-elements
+                            "status" (:status value)]))))))
 
 (defn fetch-data [channel type params & path-elements]
-  (get-data type params path-elements
-   (feed-channel channel type path-elements)))
+  (get-data type params path-elements channel))
 
 #_(
   ; REPL interaction

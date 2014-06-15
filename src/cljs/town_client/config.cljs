@@ -1,6 +1,6 @@
 (ns town-client.config)
 
-(def url-base "http://dev.hel.fi/kenenkaupunki/api/")
+(def url-base "http://dev.hel.fi/kenenkaupunki/api")
 ;(def url-base "http://localhost:8079/")
 
 (def aggregates

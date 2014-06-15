@@ -10,7 +10,8 @@
                  [ring "1.2.1"]]
   :plugins [[lein-cljsbuild "1.0.3"]
             [lein-ring "0.8.10"]]
-  :repl-options {:init-ns town-client.repl}
+  :repl-options {:init-ns town-client.repl
+                 :timeout 120000}
   :jvm-opts ["-Xmx2g"]
   :hooks [leiningen.cljsbuild]
   :source-paths ["src/clj" "src/cljs"]

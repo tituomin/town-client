@@ -24,7 +24,7 @@
   (condp = (:type intent)
     :newlocation
     (let [nid (:location intent)]
-      (tmpl/reinit-page user-channel)
+      ;(tmpl/reinit-page user-channel)
       (fetch-neighborhood data-channel nid)
       (fetch-respondents data-channel nid)
       (doseq [x (flatten (map seq (vals aggregates)))]
@@ -72,17 +72,20 @@
         (swap! app-state assoc :neighborhoods neighborhood-map)
         (let [init-hash (-> js/window .-location .-hash)]
           (if (not (clojure.string/blank? init-hash))
-            (do (tmpl/populate-neighborhood-menu neighborhoods (subs init-hash 1))
+            (do ;(tmpl/populate-neighborhood-menu neighborhoods (subs init-hash 1))
                 (async/put!
                  user-channel
                  (tmpl/neighborhood-intent
                   (subs init-hash 1))))
-            (tmpl/populate-neighborhood-menu neighborhoods nil))))
+            ;(tmpl/populate-neighborhood-menu neighborhoods nil))))
+            )))
       ; specific neighborhood
-      (tmpl/output-neighborhood (first (:results data)) (@app-state :neighborhoods)))
+      )
+      ;(tmpl/output-neighborhood (first (:results data)) (@app-state :neighborhoods)))
 
     :respondents
-    (tmpl/output-stats (count (:results data)) (into {} (for [key
+    nil
+    #_(tmpl/output-stats (count (:results data)) (into {} (for [key
               ["life_situation" "transport_mode_first"
                "probability_stay_five_years" "age_low"]]
         [key (analyser/enum-proportions (:results data) key)])))
@@ -90,7 +93,7 @@
     :answer-aggregate
     (do
       (map/add-data data)
-      (tmpl/output-map-stats (analyser/map-stats data (@app-state :neighborhoods)) (:key data)))
+      #_(tmpl/output-map-stats (analyser/map-stats data (@app-state :neighborhoods)) (:key data)))
 
     :answers ; incomplete answers, to be aggregated
       (async/put! incomplete-channel (:results data))))
@@ -125,7 +128,7 @@
         user-channel (chan)
         incomplete-channel (chan)]
     (fetch-all-neighborhoods data-channel)
-    (tmpl/init user-channel)
+    ;(tmpl/init user-channel)
     (receive-partial-data incomplete-channel data-channel)
     (go 
       (while true

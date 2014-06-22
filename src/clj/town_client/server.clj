@@ -1,35 +1,31 @@
 (ns town-client.server
-  (:require [ring.adapter.jetty :as jetty]
-            [ring.middleware.resource :as resources]
-            [ring.util.response :as response])
-  (:gen-class))
+  (:require [cemerick.austin.repls :refer (browser-connected-repl-js)]
+            [hiccup.core :refer (html)]
+            [hiccup.page :refer (html5)]
+            [compojure.route :refer (resources not-found)]
+            [compojure.core :refer (GET defroutes)]
+            ring.adapter.jetty))
 
-(defn render-app []
-  {:status 200
-   :headers {"Content-Type" "text/html"}
-   :body
-   (str "<!DOCTYPE html>"
-        "<html>"
-        "<head>"
-        "<link rel=\"stylesheet\" href=\"css/page.css\" />"
-        "</head>"
-        "<body>"
-        "<div>"
-        "<p id=\"clickable\">Click me!</p>"
-        "</div>"
-        "<script src=\"js/cljs.js\"></script>"
-        "</body>"
-        "</html>")})
+(defn page-html []
+  (html5
+   [:head [:script {:src "http://fb.me/react-0.9.0.js"}]
+          [:script {:src "/js/town.js"}]]
+   [:body
+    [:div {:id "content-wrap"}]
+    [:script (browser-connected-repl-js)]]))
 
-(defn handler [request]
-  (if (= "/" (:uri request))
-      (response/redirect "/index.html")
-      (render-app)))
+(defroutes site
+  (GET "/" req (page-html))
+  (resources "/")
+  (not-found "Page not found"))
 
-(def app 
-  (-> handler
-    (resources/wrap-resource "public")))
+(defn clojurescript []
+  (def repl-env (reset! cemerick.austin.repls/browser-repl-env
+                        (cemerick.austin/repl-env)))
+  (cemerick.austin.repls/cljs-repl repl-env))
 
-(defn -main [& args]
-  (jetty/run-jetty app {:port 3000}))
+(defn run []
+  (defonce ^:private server
+    (ring.adapter.jetty/run-jetty #'site {:port 8080 :join? false}))
+  server)
 

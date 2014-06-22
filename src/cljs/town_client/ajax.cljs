@@ -14,25 +14,22 @@
 (def pool
   (goog.net.XhrIoPool. default-headers))
 
-(defn handle-response [xhr success failure]
-  (if (.isSuccess xhr)
-      (async/put! success (.getResponseJson xhr))
-      (async/put! failure {:status (.getStatus xhr)}))
-  (.releaseObject pool xhr))
-
-(defn response-handler [success failure]
-  (fn [event]
-    (this-as xhr
-             (handle-response xhr success failure))))
+(defn handle-response [success failure event]
+  (let [xhr (.-currentTarget event)]
+   (if (.isSuccess xhr)
+     (async/put! success (.getResponseJson xhr))
+     (async/put! failure {:status (.getStatus xhr)}))
+   (.releaseObject pool xhr)))
 
 (defn make-request [url]
   (let [success (chan)
         failure (chan)]
     (.getObject pool
                 (fn [xhrio]
-                  (.listen goog.events xhrio
-                           goog.net.EventType/COMPLETE
-                           (response-handler success failure))
+                  (.listen
+                   goog.events xhrio
+                   goog.net.EventType/COMPLETE
+                   (partial handle-response success failure))
                   (.setTimeoutInterval xhrio 0)
                   (.send xhrio url "GET")))
     [success failure]))

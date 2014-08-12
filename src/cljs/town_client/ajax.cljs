@@ -23,15 +23,15 @@
 
 (defn make-request [url]
   (let [success (chan)
-        failure (chan)]
-    (.getObject pool
-                (fn [xhrio]
-                  (.listen
-                   goog.events xhrio
-                   goog.net.EventType/COMPLETE
-                   (partial handle-response success failure))
-                  (.setTimeoutInterval xhrio 0)
-                  (.send xhrio url "GET")))
+        failure (chan)
+        send (fn [xhrio]
+               (.listen
+                goog.events xhrio
+                goog.net.EventType/COMPLETE
+                (partial handle-response success failure))
+               (.setTimeoutInterval xhrio 0)
+               (.send xhrio url "GET"))]
+    (.getObject pool send)
     [success failure]))
 
 (comment

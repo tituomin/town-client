@@ -24,43 +24,62 @@
   [neighborhoods]
   {[root] (content (map neighborhood-menu-item neighborhoods))})
 
+(def future-options
+  )
+
 (defstatvisualisation future-visualisation
   town-client.config/master-template
   [:.choice-graphs [:.g-choice :.future]]
   [:verylikely :quitelikely :notsure :quiteunlikely :veryunlikely])
 
+(defstatvisualisation family-visualisation
+  town-client.config/master-template
+  [:.choice-graphs [:.g-choice :.family]]
+  [:single :couple :withkids :group :other])
 
-;; (defstatvisualisation family-visualisation
-;;   town-client.config/master-template
-;;   [:.choice-graphs [:.g-choice :.family]]
-;;   []
-;;   [["single" 0] ["couple" 10] ["withkids" 20] ["group" 30] ["other" 40]])
+(defstatvisualisation transport-visualisation
+  town-client.config/master-template
+  [:.choice-graphs [:.g-choice :.transport]]
+  [:car :bike :walk :public])
 
-;; (defstatvisualisation transport-visualisation
-;;   town-client.config/master-template
-;;   [:.choice-graphs [:.g-choice :.transport]]
-;;   []
-;;   [["car" 100] ["bike" 50] ["walk" 20] ["public" 100]])
+(defstatvisualisation age-visualisation
+  town-client.config/master-template
+  [:.choice-graphs [:.g-choice :.age]]
+  [:0 :16 :20 :25 :30 :40 :50 :60 :70])
 
-;; (defstatvisualisation age-visualisation
-;;   town-client.config/master-template
-;;   [:.choice-graphs [:.g-choice :.age]]
-;;   []
-;;   [[0 80] [16 70] [20 60] [25 50] [30 40] [40 50] [50 60] [60 70] [70 80]])
+(def app-state
+  {:future (atom {:verylikely 0
+                  :quitelikely 10
+                  :notsure 20
+                  :quiteunlikely 40
+                  :veryunlikely 30})})
 
 (defsnippet background-info-section
-  "public/kaupunginosa/index.html" 
+  "public/kaupunginosa/index.html"
   [[:.g-info-section :.background]] []
-  {[:.choice-graphs [:.g-choice :.future]] (substitute
-                                            (future-visualisation
-                                             {:verylikely 0
-                                              :quitelikely 10
-                                              :notsure 20
-                                              :quiteunlikely 40
-                                              :veryunlikely 80}))
-   ;; [:.choice-graphs [:.g-choice :.family]] (substitute (family-visualisation))
-   ;; [:.choice-graphs [:.g-choice :.transport]] (substitute (transport-visualisation))
-   ;; [:.choice-graphs [:.g-choice :.age]] (substitute (age-visualisation))
+  {[:.choice-graphs [:.g-choice :.future]]
+   (substitute (future-visualisation (:future app-state)))
+   ;; [:.choice-graphs [:.g-choice :.family]]
+   ;; (substitute (family-visualisation
+   ;;              {:single 100
+   ;;               :couple 50
+   ;;               :withkids 100
+   ;;               :group 50
+   ;;               :other 0 }))
+   ;; [:.choice-graphs [:.g-choice :.transport]]
+   ;; (substitute (transport-visualisation
+   ;;              {:car 100 :bike 90 :walk 80 :public 70}))
+   ;; [:.choice-graphs [:.g-choice :.age]]
+   ;; (substitute (age-visualisation
+   ;;              {:0 50
+   ;;               :16 40
+   ;;               :20 60
+   ;;               :25 20
+   ;;               :30 80
+   ;;               :40 0
+   ;;               :50 100
+   ;;               :60 0
+   ;;               :70 100}))
    })
 
 (defsnippet head "public/kaupunginosa/index.html" [:head] [neighborhood]
@@ -82,4 +101,10 @@
                              (first (.getElementsByTagName js/document "head")))
    (reagent/render-component [page]
                              (.getElementById js/document "content-wrap"))
+   (reset! (:future app-state) {:verylikely 0
+         :quitelikely 0
+         :notsure 100
+         :quiteunlikely 0
+         :veryunlikely 0})
+   (swap! (:future app-state) assoc :veryunlikely 100)
   )

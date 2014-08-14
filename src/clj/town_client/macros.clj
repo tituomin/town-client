@@ -11,7 +11,8 @@
        ~(into
          {} (map (fn [a]
                    `[[[:.choice-line ~(attr-has :data-choice (clojure.core/name `~a))]]
-                    (kioo.reagent/set-attr :style {:width (clojure.string/join
-                                                           [(clojure.core/get ~data-arg ~a) "%"])})])
+                    (kioo.reagent/set-attr
+                     :style {:width (clojure.string/join
+                                     [(clojure.core/get (clojure.core/deref ~data-arg) ~a) "%"])})])
                  keys)))))
 

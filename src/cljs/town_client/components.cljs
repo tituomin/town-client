@@ -24,9 +24,6 @@
   [neighborhoods]
   {[root] (content (map neighborhood-menu-item neighborhoods))})
 
-(def future-options
-  )
-
 (defstatvisualisation future-visualisation
   town-client.config/master-template
   [:.choice-graphs [:.g-choice :.future]]
@@ -52,20 +49,21 @@
                   :quitelikely 10
                   :notsure 20
                   :quiteunlikely 40
-                  :veryunlikely 30})})
+;                  :veryunlikely 30
+})})
 
 (defsnippet background-info-section
   "public/kaupunginosa/index.html"
   [[:.g-info-section :.background]] []
   {[:.choice-graphs [:.g-choice :.future]]
    (substitute (future-visualisation (:future app-state)))
-   ;; [:.choice-graphs [:.g-choice :.family]]
-   ;; (substitute (family-visualisation
-   ;;              {:single 100
-   ;;               :couple 50
-   ;;               :withkids 100
-   ;;               :group 50
-   ;;               :other 0 }))
+   [:.choice-graphs [:.g-choice :.family]]
+   (substitute (family-visualisation
+                (atom {:single 100
+                 :couple 50
+                 :withkids 100
+                 :group 50
+                 :other 0 })))
    ;; [:.choice-graphs [:.g-choice :.transport]]
    ;; (substitute (transport-visualisation
    ;;              {:car 100 :bike 90 :walk 80 :public 70}))
@@ -105,6 +103,7 @@
          :quitelikely 0
          :notsure 100
          :quiteunlikely 0
-         :veryunlikely 0})
+         :veryunlikely 100})
    (swap! (:future app-state) assoc :veryunlikely 100)
+   (swap! (:future app-state) dissoc :veryunlikely)
   )

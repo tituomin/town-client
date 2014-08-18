@@ -10,7 +10,8 @@
   (let [data-arg (gensym)]
     `(defsnippet ~name ~(eval path) ~selector [~data-arg]
        ~(into
-         {[:.summary-header :.summary-icon :i] `(kioo.core/set-class "maki-prison")}
+         {[:.summary-header :.summary-icon :i]
+          `(kioo.core/set-class (town-client.components/max-icon (clojure.core/deref ~data-arg)))}
          (map (fn [a]
                    `[[[:.choice-line ~(attr-has :data-choice (clojure.core/name `~a))]]
                     (kioo.reagent/set-attr

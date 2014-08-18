@@ -18,11 +18,33 @@
   [[name id]]
   {[root] (do-> (content name) (set-attr :value id))})
 
+(def key-icon
+  {:verylikely    "fa fa-thumbs-o-up"
+   :quitelikely   "fa fa-smile-o"
+   :notsure       "fa fa-meh-o"
+   :quiteunlikely "fa fa-frown-o"
+   :veryunlikely  "fa fa-thumbs-o-down"
+   :single        "maki-lodging"
+   :couple        "maki-toilet"
+   :withkids      "maki-school"
+   :group         "maki-theatre"
+   :other         "maki-town-hall"
+   :car           "maki-fuel"
+   :bike          "maki-bicycle"
+   :walk          "maki-pitch"
+   :public        "maki-bus"
+   })
+
+(defn max-icon [data]
+  (if (== 0 (count data))
+      "maki-prison"
+      (key-icon (key (apply max-key val data)))))
+
 (defsnippet neighborhood-menu
   "public/kaupunginosa/index.html"
   [:select.navigate-areas]
   [neighborhoods]
-  {[root] (content (map neighborhood-menu-item neighborhoods))})
+  {[Root] (content (map neighborhood-menu-item neighborhoods))})
 
 (defstatvisualisation future-visualisation
   town-client.config/master-template
@@ -45,39 +67,20 @@
   [:0 :16 :20 :25 :30 :40 :50 :60 :70])
 
 (def app-state
-  {:future (atom {:verylikely 0
-                  :quitelikely 10
-                  :notsure 20
-                  :quiteunlikely 40
-;                  :veryunlikely 30
-})})
+       {:future-accommodation (atom {}) :family-situation (atom {})
+        :transport-preferences (atom {}) :age (atom {})})
 
 (defsnippet background-info-section
   "public/kaupunginosa/index.html"
   [[:.g-info-section :.background]] []
   {[:.choice-graphs [:.g-choice :.future]]
-   (substitute (future-visualisation (:future app-state)))
+   (substitute (future-visualisation (:future-accommodation app-state)))
    [:.choice-graphs [:.g-choice :.family]]
-   (substitute (family-visualisation
-                (atom {:single 100
-                 :couple 50
-                 :withkids 100
-                 :group 50
-                 :other 0 })))
-   ;; [:.choice-graphs [:.g-choice :.transport]]
-   ;; (substitute (transport-visualisation
-   ;;              {:car 100 :bike 90 :walk 80 :public 70}))
-   ;; [:.choice-graphs [:.g-choice :.age]]
-   ;; (substitute (age-visualisation
-   ;;              {:0 50
-   ;;               :16 40
-   ;;               :20 60
-   ;;               :25 20
-   ;;               :30 80
-   ;;               :40 0
-   ;;               :50 100
-   ;;               :60 0
-   ;;               :70 100}))
+   (substitute (family-visualisation (:family-situation app-state)))
+   [:.choice-graphs [:.g-choice :.transport]]
+   (substitute (transport-visualisation (:transport-preferences app-state)))
+   [:.choice-graphs [:.g-choice :.age]]
+   (substitute (age-visualisation (:age app-state)))
    })
 
 (defsnippet head "public/kaupunginosa/index.html" [:head] [neighborhood]
@@ -99,11 +102,15 @@
                              (first (.getElementsByTagName js/document "head")))
    (reagent/render-component [page]
                              (.getElementById js/document "content-wrap"))
-   (reset! (:future app-state) {:verylikely 0
-         :quitelikely 0
-         :notsure 100
-         :quiteunlikely 0
-         :veryunlikely 100})
-   (swap! (:future app-state) assoc :veryunlikely 100)
-   (swap! (:future app-state) dissoc :veryunlikely)
+   (reset! (:future-accommodation app-state) {:verylikely 90
+         :quitelikely 100
+         :notsure 30
+         :quiteunlikely 40
+         :veryunlikely 20})
+   (reset! (:transport-preferences app-state) {:car 10
+                                               :bike 20
+                                               :walk 30
+                                               :public 40})
+   (swap! (:future-accommodation app-state) assoc :veryunlikely 90)
+   (swap! (:future-accommodation app-state) dissoc :veryunlikely)
   )

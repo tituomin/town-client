@@ -7,7 +7,7 @@
    [org.clojure/clojurescript "0.0-2311"]
    [prismatic/dommy "0.1.2"]
    [com.cemerick/url "0.1.1"]
-   [org.clojure/core.async "0.1.303.0-886421-alpha"]
+   [org.clojure/core.async "0.1.319.0-6b1aca-alpha"]
    [camel-snake-kebab "0.1.5"]
    [ring "1.2.1"]
    [compojure "1.1.8"]
@@ -40,4 +40,4 @@
                    :source-map "resources/public/js/town.js.map"
                    :externs ["js/google_maps_api_v3.js"]
                    }
-        :jar true}}})
+        :jar false}}})

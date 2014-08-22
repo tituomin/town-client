@@ -28,13 +28,22 @@
    [ring.util.response :as res]
    [ring.adapter.jetty :refer (run-jetty)]))
 
+; todo: automatically check optimization level (-> "/path/to/project.clj" slurp read-string (nth 2))
+
 (defn page-html []
   (html5
-   [:head [:script {:src "http://fb.me/react-0.9.0.js"}]
-          [:script {:src "/js/town.js"}]]
+   [:head
+    [:script {:src "js/goog/base.js"}] ; none
+    [:script {:src "http://fb.me/react-0.9.0.js"}]
+    [:script {:src "/js/town.js"}] ; none
+    [:script "goog.require('town_client.components');"] ; none
+    [:script "goog.require('town_client.main');"] ; none
+    ]
    [:body
     [:div {:id "content-wrap"}]
-    [:script (browser-connected-repl-js)]]))
+    [:script {:type "text/javascript" :src "https://maps.googleapis.com/maps/api/js?key=AIzaSyCsfgos0fa9QSD47DTl7N540KrcU1Pgwyk&amp;sensor=false"}]
+    ;[:script (browser-connected-repl-js)]
+]))
 
 (defroutes app
   (GET "/" req (page-html))

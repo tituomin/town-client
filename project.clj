@@ -36,7 +36,7 @@
         :source-paths ["src/cljs" "src/clj"]
         :compiler {:output-dir "resources/public/js"
                    :output-to "resources/public/js/town.js"
-                   :optimizations :whitespace
+                   :optimizations :none
                    :source-map "resources/public/js/town.js.map"
                    :externs ["js/google_maps_api_v3.js"]
                    }

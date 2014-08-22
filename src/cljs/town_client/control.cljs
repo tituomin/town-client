@@ -1,8 +1,11 @@
 (ns town-client.control
   (:require
    [clojure.set]
+   [goog.events]
    [town-client.config :refer [aggregates]]
+   [town-client.components :as components]
    [town-client.data :refer [fetch-data]]
+   [town-client.state :as state]
    [town-client.util :refer [log-v log]]
    [town-client.templating :as tmpl]
    [town-client.map :as map]
@@ -42,21 +45,16 @@
     (((-> (data "features")
         first) "properties") "category")))
 
-(defn handle-new-data [data incomplete-channel user-channel]
-  (case (:resource-type data)
-    :divisions
-    (if (< 1 (count (:results data)))
-      ; no id, got all neighborhoods
-      (let [neighborhoods
-            (sort-by #(:name %)
-                     (filter
-                      #(not (= "Aluemeri" (:name %)))
-                      (map
-                       (fn [n] {:name ((n "name") "fi") :id (n "id")})
-                       (:results data))))
-
-            neighborhood-map
-            (apply hash-map (flatten
+(defn process-neighborhoods [results]
+  "'Simple' way of calculating the previous and next neighborhoods"
+  (let [neighborhoods
+        (sort-by #(:name %)
+                 (filter
+                  #(not (= "Aluemeri" (:name %)))
+                  (map
+                   (fn [n] {:name ((n "name") "fi") :id (n "id")})
+                   results)))]
+    (apply hash-map (flatten
               (for [neig
                 (for [[e1 e2]
                   (partition 2
@@ -65,35 +63,38 @@
                         (for [[left right] (partition 2 1 neighborhoods)]
                           [(assoc left :next (:id right))
                            (assoc right :prev (:id left))])) {}))))]
-                (merge e1 e2))]
-           [(:id neig) neig])))]
+                  (merge e1 e2))]
+                [(:id neig) neig])))))
 
-
-        (swap! app-state assoc :neighborhoods neighborhood-map)
+(defn handle-new-data [data incomplete-channel user-channel]
+  (case (:resource-type data)
+    :divisions
+    (if (< 1 (count (:results data)))
+      ; no id, got all neighborhoods
+      (do
+        (reset! state/neighborhoods (process-neighborhoods (:results data)))
+        ; todo: move init hash handling elsewhere?
         (let [init-hash (-> js/window .-location .-hash)]
-          (if (not (clojure.string/blank? init-hash))
-            (do ;(tmpl/populate-neighborhood-menu neighborhoods (subs init-hash 1))
-                (async/put!
-                 user-channel
-                 (tmpl/neighborhood-intent
-                  (subs init-hash 1))))
-            ;(tmpl/populate-neighborhood-menu neighborhoods nil))))
-            )))
+          (when (not (clojure.string/blank? init-hash))
+            ;(tmpl/populate-neighborhood-menu neighborhoods (subs init-hash 1))
+            (async/put!
+             user-channel
+             (neighborhood-intent (subs init-hash 1))))))
       ; specific neighborhood
-      )
+    (state/process-neighborhood (first (:results data))))
       ;(tmpl/output-neighborhood (first (:results data)) (@app-state :neighborhoods)))
 
     :respondents
-    nil
-    #_(tmpl/output-stats (count (:results data)) (into {} (for [key
-              ["life_situation" "transport_mode_first"
-               "probability_stay_five_years" "age_low"]]
-        [key (analyser/enum-proportions (:results data) key)])))
+    (state/process-stats
+     (count (:results data))
+     (into {} (for [key (keys state/visualisation-group-key)]
+                [key (analyser/enum-proportions (:results data) key)])))
 
     :answer-aggregate
-    (do
-      (map/add-data data)
-      #_(tmpl/output-map-stats (analyser/map-stats data (@app-state :neighborhoods)) (:key data)))
+    nil
+    ;; (do
+    ;;   (map/add-data data)
+    ;;   #_(tmpl/output-map-stats (analyser/map-stats data (@app-state :neighborhoods)) (:key data)))
 
     :answers ; incomplete answers, to be aggregated
       (async/put! incomplete-channel (:results data))))
@@ -123,10 +124,21 @@
                   (dissoc data aggregate-id)))
          (recur new-keys new-data))))))
 
+(defn neighborhood-intent [id]
+  {:type :newlocation, :location id })
+
 (defn init []
   (let [data-channel (chan)
         user-channel (chan)
         incomplete-channel (chan)]
+    (.listen goog.events
+             js/window "hashchange"
+             #(async/put! user-channel
+                          (neighborhood-intent
+                           (subs
+                          (-> % .-currentTarget
+                              .-location .-hash) 1))))
+    
     (fetch-all-neighborhoods data-channel)
     ;(tmpl/init user-channel)
     (receive-partial-data incomplete-channel data-channel)

@@ -55,7 +55,7 @@
     (swap! result assoc :value (.getResponseJson (.-target response)))
     (swap! result assoc :error (.getStatus (.-target response)))
     (swap! result assoc :orig response))
-  (get-data "respondents" {:neighborhood 370} nil parse)
+  (fetch-data "respondents" {:neighborhood 370} nil parse)
   (get-data "rrgoijespondents" {:neighborhood 370} nil parse)
   (ajax/make-request (api-url "respondents" {:neighborhood 370} nil))
   )

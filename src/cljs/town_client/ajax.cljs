@@ -1,5 +1,6 @@
 (ns town-client.ajax
   (:require
+   [goog.structs.Map]
    [goog.net.XhrIo]
    [goog.net.XhrIoPool]
    [goog.net.EventType]
@@ -9,7 +10,8 @@
   (:require-macros [cljs.core.async.macros :as m :refer [go alt!]]))
 
 (def default-headers
-  #js{"Accept" "application/json"})
+  (goog.structs.Map. #js{"Accept" "application/json"})
+  )
 
 (def pool
   (goog.net.XhrIoPool. default-headers))

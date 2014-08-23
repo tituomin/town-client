@@ -37,7 +37,7 @@
    "Pasila" "Pasilalaisten"
    "Pitäjänmäki" "Pitäjänmäkeläisten"
    "Pukinmäki" "Pukinmäkeläisten"
-   "Punavuori" "Punavuorilaisten"
+   "Punavuori" "Punavuorelaisten"
    "Ruskeasuo" "Ruskeasuolaisten"
    "Salmenkallio" "Salmenkalliolaisten"
    "Santahamina" "Santahaminalaisten"

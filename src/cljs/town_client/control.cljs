@@ -91,10 +91,10 @@
                 [key (analyser/enum-proportions (:results data) key)])))
 
     :answer-aggregate
-    nil
-    ;; (do
-    ;;   (map/add-data data)
-    ;;   #_(tmpl/output-map-stats (analyser/map-stats data (@app-state :neighborhoods)) (:key data)))
+    (do
+      ;(map/add-data data)
+      (state/process-map-stats
+       (analyser/map-stats data @state/neighborhoods) (:key data)))
 
     :answers ; incomplete answers, to be aggregated
       (async/put! incomplete-channel (:results data))))

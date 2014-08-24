@@ -103,6 +103,20 @@
 (defsnippet head "public/kaupunginosa/index.html" [:head] [neighborhood]
   {[:title] (content neighborhood)})
 
+(defsnippet map-ranking-item
+  "public/kaupunginosa/index.html"
+  [[:li :.rankingarea first-of-type]]
+  [{:keys [name count]}]
+  {[root] (content (str name " " count))})
+
+(defsnippet info-map "public/kaupunginosa/index.html"
+  [:.mapview]
+  [ranking]
+  {[:.g-rankingarea :.rankingarea-content :.rankingarea-list]
+   (content (map map-ranking-item (second ranking)))
+   [:.g-maparea] (content nil)})
+
+
 (defsnippet neighborhood-header "public/kaupunginosa/index.html"
   [:.page-header]
   [neighborhood]
@@ -119,9 +133,12 @@
    (substitute (neighborhood-header @state/current-neighborhood))
    [[:.g-info-section :.background]]
    (substitute (background-info-section))
+   [[:.g-info-section :.map]]
+   (substitute (map info-map @state/rankings))
 })
 
-(defn init [channel]
+
+(defn init []
   (reagent/render-component [head "Kenen kaupunki"]
                             (.item (.getElementsByTagName js/document "head") 0))
   (reagent/render-component [page]

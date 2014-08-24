@@ -20,8 +20,10 @@
                      "scaleControl" false
                      "streetViewControl" false
                      "overviewMapControl" false }
-        el (sel1 (str ".map-ranking-content#" id " " ".g-mapcanvas"))
-        map (google.maps.Map. el map-opts)]
+        selector (str ".mapview#" id " " ".g-maparea")
+        el (sel1 selector)
+        map (google.maps.Map. el map-opts)
+]
     (swap! maps assoc id map)
     map))
 
@@ -57,7 +59,7 @@
   (if (:key data)
     (let 
         [key (:key data)
-         map (or (@maps key) (add-map! (name key)))]
+         map (add-map! (name key))]
       (doseq [obj (vals (data :results))]
         (.addGeoJson (.-data map) obj)
         (.setStyle (.-data map)

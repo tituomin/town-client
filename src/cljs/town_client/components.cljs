@@ -112,9 +112,14 @@
 (defsnippet info-map "public/kaupunginosa/index.html"
   [:.mapview]
   [ranking]
-  {[:.g-rankingarea :.rankingarea-content :.rankingarea-list]
+  {[root] (set-attr :id (first ranking))
+   [:.g-rankingarea :.rankingarea-content :.rankingarea-list]
    (content (map map-ranking-item (second ranking)))
-   [:.g-maparea] (content nil)})
+   [:.g-maparea] (do->
+                  (content nil)
+                  (set-attr :style {:height "300px"}))
+   }
+  )
 
 
 (defsnippet neighborhood-header "public/kaupunginosa/index.html"
@@ -134,7 +139,7 @@
    [[:.g-info-section :.background]]
    (substitute (background-info-section))
    [[:.g-info-section :.map]]
-   (substitute (map info-map @state/rankings))
+   (content (map info-map @state/rankings))
 })
 
 
@@ -152,10 +157,11 @@
          :notsure 0
          :quiteunlikely 100
          :veryunlikely 0})
-   (reset! (:transport-preferences app-state) {:car 10
-                                               :bike 20
-                                               :walk 30
-                                               :public 40})
+   (reset! (:transport-preferences app-state)
+           {:car 10
+            :bike 20
+            :walk 30
+            :public 40})
    (swap! (:future-accommodation app-state) assoc :veryunlikely 90)
    (swap! (:future-accommodation app-state) dissoc :veryunlikely)
    (swap! (:age app-state) assoc :16 50)

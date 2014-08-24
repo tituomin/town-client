@@ -76,13 +76,11 @@
         ; todo: move init hash handling elsewhere?
         (let [init-hash (-> js/window .-location .-hash)]
           (when (not (clojure.string/blank? init-hash))
-            ;(tmpl/populate-neighborhood-menu neighborhoods (subs init-hash 1))
             (async/put!
              user-channel
              (neighborhood-intent (subs init-hash 1))))))
       ; specific neighborhood
     (state/process-neighborhood (first (:results data))))
-      ;(tmpl/output-neighborhood (first (:results data)) (@app-state :neighborhoods)))
 
     :respondents
     (state/process-stats
@@ -92,9 +90,9 @@
 
     :answer-aggregate
     (do
-      ;(map/add-data data)
       (state/process-map-stats
-       (analyser/map-stats data @state/neighborhoods) (:key data)))
+       (analyser/map-stats data @state/neighborhoods) (:key data))
+      (map/add-data data))
 
     :answers ; incomplete answers, to be aggregated
       (async/put! incomplete-channel (:results data))))
@@ -140,7 +138,6 @@
                               .-location .-hash) 1))))
     
     (fetch-all-neighborhoods data-channel)
-    ;(tmpl/init user-channel)
     (receive-partial-data incomplete-channel data-channel)
     (go 
       (while true

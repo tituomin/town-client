@@ -129,7 +129,7 @@
    [:.header-link-prev :a] (set-attr :href (str "#" (:prev neighborhood)))
    [:.header-link-next :a] (set-attr :href (str "#" (:next neighborhood)))})
 
-(deftemplate page "public/kaupunginosa/index.html" []
+(deftemplate neighborhood-page "public/kaupunginosa/index.html" []
   {[:head]
    (substitute (head))
    [:.navigate-areas]
@@ -142,13 +142,42 @@
    (content (map info-map @state/rankings))
 })
 
+(defsnippet town-map "public/kaupunginosa/index.html"
+  [:#neighborhood-map]
+  [neighborhoods]
+  {[root] (content nil)})
+
+(deftemplate landing-page "public/index.html"
+  []
+  {[:#neighborhood-map] (do->
+                         (content (town-map nil))
+                         (set-attr :style {:height "800px"}))
+;; [:head]
+;;    (substitute (head))
+;;    [:.navigate-areas]
+;;    (substitute (neighborhood-menu state/neighborhoods))
+;;    [:.page-header]
+;;    (substitute (neighborhood-header @state/current-neighborhood))
+;;    [[:.g-info-section :.background]]
+;;    (substitute (background-info-section))
+;;    [[:.g-info-section :.map]]
+;;    (content (map info-map @state/rankings))
+})
 
 (defn init []
-  (reagent/render-component [head "Kenen kaupunki"]
-                            (.item (.getElementsByTagName js/document "head") 0))
-  (reagent/render-component [page]
+  (.log js/console "init")
+  (reagent/render-component [neighborhood-page]
                             (.getElementById js/document "content-wrap"))
   )
+
+(defn init-front []
+  (.log js/console "init.front")
+  (reagent/render-component [head "Kenen kaupunki"]
+                             (.item (.getElementsByTagName js/document "head") 0))
+  (reagent/render-component [landing-page]
+                            (.getElementById js/document "content-wrap"))
+  )
+
 
 #_(
    (reset! state/neighborhoods {1 {:name "foo" :id 1 :prev nil :next nil}})

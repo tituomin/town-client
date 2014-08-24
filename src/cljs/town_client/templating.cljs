@@ -44,6 +44,9 @@
                 (:name n)]))
        neighborhoods))
        
+;24.7828 59.9224 60.2978 25.2544
+;24.783 59.923 60.298 25.255
+; center of helsinki 25.0171297094567 60.1143400903318
 (defn choose-neighborhood [id]
   (aset (.-location js/window) "hash" id))
 

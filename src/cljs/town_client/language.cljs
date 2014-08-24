@@ -28,7 +28,7 @@
    "Lauttasaari" "Lauttasaarelaisten"
    "Länsisatama" "Länsisatamalaisten"
    "Malmi" "Malmilaisten"
-   "Meilahti" "Meilahtilaisten"
+   "Meilahti" "Meilahtelaisten"
    "Mellunkylä" "Mellunkyläläisten"
    "Munkkiniemi" "Munkkiniemiläisten"
    "Mustikkamaa-Korkeasaari" "Mustikkamaa-korkeasaarelaisten"

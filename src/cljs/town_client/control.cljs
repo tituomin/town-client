@@ -15,7 +15,7 @@
   (:require-macros [cljs.core.async.macros :as m :refer [go alt!]]))
 
 (defn fetch-all-neighborhoods [channel]
-  (fetch-data channel "divisions" {:type 4}))
+  (fetch-data channel "divisions" {:type 4 :geometry "true"}))
 (defn fetch-neighborhood [channel id]
   (fetch-data channel "divisions" {:geometry "true"} id))
 (defn fetch-respondents [channel nid]
@@ -27,7 +27,7 @@
   (condp = (:type intent)
     :newlocation
     (let [nid (:location intent)]
-      ;(tmpl/reinit-page user-channel)
+      (components/init)
       (fetch-neighborhood data-channel nid)
       (fetch-respondents data-channel nid)
       (doseq [x (flatten (map seq (vals aggregates)))]
@@ -50,9 +50,9 @@
   (let [neighborhoods
         (sort-by #(:name %)
                  (filter
-                  #(not (= "Aluemeri" (:name %)))
+                  #(and (not (= "Aluemeri" (:name %))) (not (= "Ulkosaaret" (:name %))))
                   (map
-                   (fn [n] {:name ((n "name") "fi") :id (n "id")})
+                   (fn [n] {:name ((n "name") "fi") :id (n "id") :geometry (n "boundary")})
                    results)))]
     (apply hash-map (flatten
               (for [neig
@@ -78,7 +78,9 @@
           (when (not (clojure.string/blank? init-hash))
             (async/put!
              user-channel
-             (neighborhood-intent (subs init-hash 1))))))
+             (neighborhood-intent (subs init-hash 1)))))
+        (map/add-neighborhood-map! "neighborhood-map")
+        )
       ; specific neighborhood
     (state/process-neighborhood (first (:results data))))
 

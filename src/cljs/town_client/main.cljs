@@ -4,5 +4,7 @@
   [town-client.components :as components]
   [town-client.control :as control]))
 
-(set! (.-onload js/window) components/init)
+(set! (.-onload js/window) components/init-front)
 (control/init)
+;(components/init-front)
+

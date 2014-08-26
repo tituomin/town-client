@@ -6,14 +6,14 @@
    [kioo.core]))
 
 
-(defmacro defstatvisualisation [name path selector keys]
+(defmacro defstatvisualisation [name path selector bar-class keys]
   (let [data-arg (gensym)]
     `(defsnippet ~name ~(eval path) ~selector [~data-arg]
        ~(into
          {[:.summary-header :.summary-icon :i]
           `(kioo.core/set-class (town-client.components/max-icon (clojure.core/deref ~data-arg)))}
          (map (fn [a]
-                   `[[[:.choice-line ~(attr-has :data-choice (clojure.core/name `~a))]]
+                   `[[[~bar-class ~(attr-has :data-choice (clojure.core/name `~a))]]
                     (kioo.reagent/set-attr
                      :style {:width (clojure.string/join
                                      [(or (clojure.core/get (clojure.core/deref ~data-arg) ~a) "0") "%"])})])

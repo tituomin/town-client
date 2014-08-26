@@ -66,22 +66,43 @@
 (defstatvisualisation future-visualisation
   town-client.config/master-template
   [:.choice-graphs [:.g-choice :.future]]
+  :.choice-line
   [:verylikely :quitelikely :notsure :quiteunlikely :veryunlikely])
 
 (defstatvisualisation family-visualisation
   town-client.config/master-template
   [:.choice-graphs [:.g-choice :.family]]
+  :.choice-line
   [:single :couple :withkids :group :other])
 
 (defstatvisualisation transport-visualisation
   town-client.config/master-template
   [:.choice-graphs [:.g-choice :.transport]]
+  :.choice-line
   [:car :bike :walk :public])
 
 (defstatvisualisation age-visualisation
   town-client.config/master-template
   [:.choice-graphs [:.g-choice :.age]]
+  :.choice-line
   [:0 :16 :20 :25 :30 :40 :50 :60 :70])
+
+(defstatvisualisation opinion-visualisation
+  town-client.config/master-template
+  [:.g-value-questions :.value-questions]
+  :.value-question-graphic-spacer
+  [:agree_add_density
+   :agree_add_my_area_density_for_less_cars
+   :agree_bulevardisation
+   :agree_high_rise
+   :agree_suburbs_build_near_stations
+   :enjoy_culture_urban_meetings
+   :enjoy_metropolis_fascinating_possibilities
+   :enjoy_outdoors_large_woods
+   :my_area_could_be_built_more
+   :prefer_daily_shopping_near
+   :would_use_rail_transport_more
+   ])
 
 (defsnippet background-info-section
   "public/kaupunginosa/index.html"
@@ -129,6 +150,19 @@
    [:.header-link-prev :a] (set-attr :href (str "#" (:prev neighborhood)))
    [:.header-link-next :a] (set-attr :href (str "#" (:next neighborhood)))})
 
+(def foo (atom {:agree_add_density 0
+             :agree_add_my_area_density_for_less_cars 0
+             :agree_bulevardisation 0
+             :agree_high_rise 0
+             :agree_suburbs_build_near_stations 0
+             :enjoy_culture_urban_meetings 0
+             :enjoy_metropolis_fascinating_possibilities 0
+             :enjoy_outdoors_large_woods 0
+             :my_area_could_be_built_more 0
+             :prefer_daily_shopping_near 0
+             :would_use_rail_transport_more 0
+             }))
+
 (deftemplate neighborhood-page "public/kaupunginosa/index.html" []
   {[:head]
    (substitute (head))
@@ -140,6 +174,8 @@
    (substitute (background-info-section))
    [[:.g-info-section :.map]]
    (content (map info-map @state/rankings))
+   [[:.g-info-section :.values] :.g-value-questions :.value-questions]
+   (substitute (opinion-visualisation foo))
 })
 
 (defsnippet town-map "public/kaupunginosa/index.html"
@@ -165,18 +201,15 @@
 })
 
 (defn init []
-  (.log js/console "init")
   (reagent/render-component [neighborhood-page]
                             (.getElementById js/document "content-wrap"))
   )
 
 (defn init-front []
-  (.log js/console "init.front")
   (reagent/render-component [head "Kenen kaupunki"]
                              (.item (.getElementsByTagName js/document "head") 0))
   (reagent/render-component [landing-page]
-                            (.getElementById js/document "content-wrap"))
-  )
+                            (.getElementById js/document "content-wrap")))
 
 
 #_(

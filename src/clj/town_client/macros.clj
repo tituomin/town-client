@@ -15,6 +15,9 @@
                                (clojure.core/deref ~data-arg)))
           [:.summary-header :.summary-icon :i]
           `(kioo.core/set-class (town-client.components/max-icon
+                                 (clojure.core/deref ~data-arg)))
+          [:.summary-header :.summary-value]
+          `(kioo.core/content (town-client.components/max-value
                                  (clojure.core/deref ~data-arg)))}
          (map (fn [a]
                    `[[[~bar-class ~(attr-has :data-choice (clojure.core/name `~a))]]

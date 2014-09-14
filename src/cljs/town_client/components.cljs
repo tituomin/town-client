@@ -32,6 +32,24 @@
    :not-found     "maki-prison"
    })
 
+(def age-ranges
+  [[:0 :15]
+  [:16 :19]
+  [:20 :24]
+  [:25 :29]
+  [:30 :39]
+  [:40 :49]
+  [:50 :59]
+  [:60 :69]
+  [:70 :?]])
+
+(def age-strings
+  (into
+   {}
+   (map (fn [[k v]]
+          [k (str (name k) "-" (name v))])
+        age-ranges)))
+
 (defn top-choice [data]
   (if (== 0 (count data))
           :not-found
@@ -43,6 +61,9 @@
 (defn max-icon [data]
     (or (key-icon (top-choice data))
         (key-icon :not-found)))
+
+(defn max-value [data]
+  (age-strings (top-choice data)))
 
 (defsnippet neighborhood-menu-item
   "public/kaupunginosa.html"

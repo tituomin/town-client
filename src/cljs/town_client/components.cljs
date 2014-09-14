@@ -32,13 +32,17 @@
    :not-found     "maki-prison"
    })
 
-(defn max-icon [data]
-  (let [top-key
-        (if (== 0 (count data))
+(defn top-choice [data]
+  (if (== 0 (count data))
           :not-found
-          (key (apply max-key val data)))]
-    (or (key-icon top-key)
-        (key-icon :not-found))))
+          (key (apply max-key val data))))
+
+(defn max-class [data]
+  (str "choice-color-" (name (top-choice data))))
+
+(defn max-icon [data]
+    (or (key-icon (top-choice data))
+        (key-icon :not-found)))
 
 (defsnippet neighborhood-menu-item
   "public/kaupunginosa.html"
@@ -55,11 +59,12 @@
 (defsnippet neighborhood-menu
   "public/kaupunginosa.html"
   [:select.navigate-areas]
-  [neighborhoods]
+  [neighborhood neighborhoods]
   {[root]
    (do->
     (content (map neighborhood-menu-item
                   (sort-by :name (vals @neighborhoods))))
+    (set-attr :value (:id @neighborhood))
     (listen :on-change #(choose-neighborhood (-> % .-target .-value)))
     )})
 
@@ -172,7 +177,7 @@
   {[:head]
    (substitute (head))
    [:.navigate-areas]
-   (substitute (neighborhood-menu state/neighborhoods))
+   (substitute (neighborhood-menu state/current-neighborhood state/neighborhoods))
    [:.page-header]
    (substitute (neighborhood-header @state/current-neighborhood state/neighborhoods))
    [[:.g-info-section :.background]]

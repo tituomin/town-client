@@ -72,7 +72,6 @@
                                  }}
         )) @state/neighborhoods)
         ]
-    (.log js/console config/front-page-map-styles)
     (doseq [feature features]
       (.add (.-data gmap) feature))
     (.addListener js/google.maps.event (.-data gmap) "click"

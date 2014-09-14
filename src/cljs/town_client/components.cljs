@@ -150,7 +150,9 @@
    [:.header-link-prev :a] (set-attr :href (str "#" (:prev neighborhood)))
    [:.header-link-next :a] (set-attr :href (str "#" (:next neighborhood)))
    [:.header-link-destination--left] (content (:name (@neighborhoods (:prev neighborhood))))
-   [:.header-link-destination--right] (content (:name (@neighborhoods (:next neighborhood))))})
+   [:.header-link-destination--right] (content (:name (@neighborhoods (:next neighborhood))))
+   [:.header-responders-count :.responders-count] (content (:respondent-count neighborhood))
+   })
 
 (def foo (atom
           {:agree_add_density 0

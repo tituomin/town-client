@@ -13,7 +13,11 @@
    :opinions (atom {})})
 
 (def neighborhoods
-  (atom {0 {:name "ladataan" :respondents 0 :id 0 :prev nil :next nil}}))
+  (atom {0 {:name "ladataan"
+            :respondent-count 0
+            :id 0
+            :prev nil
+            :next nil}}))
 
 (def rankings
   (atom (into
@@ -66,6 +70,7 @@
     (reset! (app-state (visualisation-group-key group-key)) {}))
   (doseq [[group-key group-values] answers
           [key value] group-values]
+    (swap! current-neighborhood assoc :respondent-count respondent-count)
     (swap! (app-state (visualisation-group-key group-key))
            assoc (or (visualisation-key key) (keyword (str key)))
            (/ (* 100 value) respondent-count))))

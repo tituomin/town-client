@@ -18,6 +18,8 @@
                      "zoom" 11
                      "panControl" false
                      "zoomControl" true
+                     "scrollwheel" false
+                     "draggable" true
                      "mapTypeControl" false
                      "scaleControl" false
                      "streetViewControl" false

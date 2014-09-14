@@ -22,3 +22,24 @@
                                               (map js->clj
                                                    (vals
                                                     (:results data)))))))))))
+
+(defn map-summer [keys]
+  (fn [mapx mapy]
+    (into {} (map
+     #(vector % (+ (mapx %) (mapy %)))
+       keys))))
+
+(defn totals [data]
+  (let [reducer (map-summer [:a :b])]
+    (reduce reducer data)))
+
+(defn divide [divisor [k v]]
+  [k (/ v divisor)])
+
+(defn averages [data]
+  (into {} (map (partial (divide (count data)))
+                (totals data))))
+
+(defn scale-key [data-key]
+  (keyword (clojure.string/replace data-key "scale_" "")))
+

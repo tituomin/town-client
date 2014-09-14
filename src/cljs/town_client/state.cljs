@@ -13,10 +13,12 @@
    :opinions (atom {})})
 
 (def neighborhoods
-  (atom {0 {:name "ladataan" :id 0 :prev nil :next nil}}))
+  (atom {0 {:name "ladataan" :respondents 0 :id 0 :prev nil :next nil}}))
 
 (def rankings
-  (atom (into {} (map (fn [pair] [(first pair) {}]) aggregates))))
+  (atom (into
+         {} (map (fn [pair] [(first pair) {}])
+                 aggregates))))
 
 (def current-neighborhood
   (atom {:genetive "Kenen"}))

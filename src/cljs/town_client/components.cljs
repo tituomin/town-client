@@ -11,7 +11,7 @@
   (:require-macros [kioo.reagent :refer [defsnippet deftemplate]]
                    [town-client.macros :refer [defstatvisualisation]]))
 
-(def template-path "public/kaupunginosa/index.html")
+(def template-path "public/kaupunginosa.html")
 (def mock-neighborhood-genetive "Kalliolaisten")
 
 (def key-icon
@@ -41,7 +41,7 @@
         (key-icon :not-found))))
 
 (defsnippet neighborhood-menu-item
-  "public/kaupunginosa/index.html"
+  "public/kaupunginosa.html"
   [:select.navigate-areas [:option first-of-type]]
   [{:keys [name id]}]
   {[root] (do-> (content name)
@@ -53,7 +53,7 @@
   (aset (.-location js/window) "hash" id))
 
 (defsnippet neighborhood-menu
-  "public/kaupunginosa/index.html"
+  "public/kaupunginosa.html"
   [:select.navigate-areas]
   [neighborhoods]
   {[root]
@@ -105,7 +105,7 @@
    ])
 
 (defsnippet background-info-section
-  "public/kaupunginosa/index.html"
+  "public/kaupunginosa.html"
   [[:.g-info-section :.background]] []
   {[:.choice-graphs [:.g-choice :.future]]
    (substitute (future-visualisation
@@ -121,16 +121,16 @@
                 (:age app-state)))
    })
 
-(defsnippet head "public/kaupunginosa/index.html" [:head] [neighborhood]
+(defsnippet head "public/kaupunginosa.html" [:head] [neighborhood]
   {[:title] (content neighborhood)})
 
 (defsnippet map-ranking-item
-  "public/kaupunginosa/index.html"
+  "public/kaupunginosa.html"
   [[:li :.rankingarea first-of-type]]
   [{:keys [name count]}]
   {[root] (content (str name " " count))})
 
-(defsnippet info-map "public/kaupunginosa/index.html"
+(defsnippet info-map "public/kaupunginosa.html"
   [:.mapview]
   [ranking]
   {[root] (set-attr :id (first ranking))
@@ -143,33 +143,36 @@
   )
 
 
-(defsnippet neighborhood-header "public/kaupunginosa/index.html"
+(defsnippet neighborhood-header "public/kaupunginosa.html"
   [:.page-header]
-  [neighborhood]
+  [neighborhood neighborhoods]
   {[:.header-area] (content (:genetive neighborhood))
    [:.header-link-prev :a] (set-attr :href (str "#" (:prev neighborhood)))
-   [:.header-link-next :a] (set-attr :href (str "#" (:next neighborhood)))})
+   [:.header-link-next :a] (set-attr :href (str "#" (:next neighborhood)))
+   [:.header-link-destination--left] (content (:name (@neighborhoods (:prev neighborhood))))
+   [:.header-link-destination--right] (content (:name (@neighborhoods (:next neighborhood))))})
 
-(def foo (atom {:agree_add_density 0
-             :agree_add_my_area_density_for_less_cars 0
-             :agree_bulevardisation 0
-             :agree_high_rise 0
-             :agree_suburbs_build_near_stations 0
-             :enjoy_culture_urban_meetings 0
-             :enjoy_metropolis_fascinating_possibilities 0
-             :enjoy_outdoors_large_woods 0
-             :my_area_could_be_built_more 0
-             :prefer_daily_shopping_near 0
-             :would_use_rail_transport_more 0
-             }))
+(def foo (atom
+          {:agree_add_density 0
+           :agree_add_my_area_density_for_less_cars 0
+           :agree_bulevardisation 0
+           :agree_high_rise 0
+           :agree_suburbs_build_near_stations 0
+           :enjoy_culture_urban_meetings 0
+           :enjoy_metropolis_fascinating_possibilities 0
+           :enjoy_outdoors_large_woods 0
+           :my_area_could_be_built_more 0
+           :prefer_daily_shopping_near 0
+           :would_use_rail_transport_more 0
+           }))
 
-(deftemplate neighborhood-page "public/kaupunginosa/index.html" []
+(deftemplate neighborhood-page "public/kaupunginosa.html" []
   {[:head]
    (substitute (head))
    [:.navigate-areas]
    (substitute (neighborhood-menu state/neighborhoods))
    [:.page-header]
-   (substitute (neighborhood-header @state/current-neighborhood))
+   (substitute (neighborhood-header @state/current-neighborhood state/neighborhoods))
    [[:.g-info-section :.background]]
    (substitute (background-info-section))
    [[:.g-info-section :.map]]
@@ -178,7 +181,7 @@
    (substitute (opinion-visualisation foo))
 })
 
-(defsnippet town-map "public/kaupunginosa/index.html"
+(defsnippet town-map "public/kaupunginosa.html"
   [:#neighborhood-map]
   [neighborhoods]
   {[root] (content nil)})
@@ -188,16 +191,6 @@
   {[:#neighborhood-map] (do->
                          (content (town-map nil))
                          (set-attr :style {:height "800px"}))
-;; [:head]
-;;    (substitute (head))
-;;    [:.navigate-areas]
-;;    (substitute (neighborhood-menu state/neighborhoods))
-;;    [:.page-header]
-;;    (substitute (neighborhood-header @state/current-neighborhood))
-;;    [[:.g-info-section :.background]]
-;;    (substitute (background-info-section))
-;;    [[:.g-info-section :.map]]
-;;    (content (map info-map @state/rankings))
 })
 
 (defn init []

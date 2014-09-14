@@ -1,2 +1,2 @@
 (ns town-client.config)
-(def master-template "public/kaupunginosa/index.html")
+(def master-template "public/kaupunginosa.html")

@@ -33,15 +33,9 @@
    })
 
 (def age-ranges
-  [[:0 :15]
-  [:16 :19]
-  [:20 :24]
-  [:25 :29]
-  [:30 :39]
-  [:40 :49]
-  [:50 :59]
-  [:60 :69]
-  [:70 :?]])
+  [[:0 :15] [:16 :19] [:20 :24]
+  [:25 :29] [:30 :39] [:40 :49]
+  [:50 :59] [:60 :69] [:70 :?]])
 
 (def age-strings
   (into
@@ -206,7 +200,7 @@
    [[:.g-info-section :.map]]
    (content (map info-map @state/rankings))
    [[:.g-info-section :.values] :.g-value-questions :.value-questions]
-   (substitute (opinion-visualisation foo))
+   (substitute (opinion-visualisation (:opinions app-state)))
 })
 
 (defsnippet town-map "public/kaupunginosa.html"

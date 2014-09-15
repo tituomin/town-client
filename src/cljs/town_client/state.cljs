@@ -3,6 +3,7 @@
    [reagent.core :as reagent :refer [atom]]
    [clojure.zip :as zip]
    [town-client.language :as language]
+   [town-client.analyser :as analyser]
    [town-client.config :refer [aggregates]]))
 
 (def app-state
@@ -10,7 +11,8 @@
    :family-situation (atom {})
    :transport-preferences (atom {})
    :age (atom {})
-   :opinions (atom {})})
+   :opinions (atom {})
+   :debug (atom {})})
 
 (def neighborhoods
   (atom {0 {:name "ladataan"
@@ -65,15 +67,21 @@
     "probability_stay_five_years" :future-accommodation
    })
 
-(defn process-stats [respondent-count answers]
+(defn process-stats [respondent-count answers scales]
+  ; Clear any previous results so keys missing from current
+  ; neighborhood do not persist.
   (doseq [group-key (keys answers)]
     (reset! (app-state (visualisation-group-key group-key)) {}))
   (doseq [[group-key group-values] answers
           [key value] group-values]
     (swap! current-neighborhood assoc :respondent-count respondent-count)
     (swap! (app-state (visualisation-group-key group-key))
-           assoc (or (visualisation-key key) (keyword (str key)))
-           (/ (* 100 value) respondent-count))))
+           assoc (or (visualisation-key key)
+                     (keyword (str key)))
+           (/ (* 100 value) respondent-count)))
+  (reset! (app-state :opinions)
+          (into {} (map (fn [[k v]] [(analyser/scale-key k) v])) scales)))
+
 
 (defn process-neighborhood [neighborhood]
   (let [id (neighborhood "id")

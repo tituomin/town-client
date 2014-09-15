@@ -88,7 +88,8 @@
     (state/process-stats
      (count (:results data))
      (into {} (for [key (keys state/visualisation-group-key)]
-                [key (analyser/enum-proportions (:results data) key)])))
+                [key (analyser/enum-proportions (:results data) key)]))
+     (analyser/averages (:results data)))
 
     :answer-aggregate
     (do

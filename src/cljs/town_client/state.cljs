@@ -72,6 +72,7 @@
   ; neighborhood do not persist.
   (doseq [group-key (keys answers)]
     (reset! (app-state (visualisation-group-key group-key)) {}))
+  (reset! (app-state :opinions) {})
   (doseq [[group-key group-values] answers
           [key value] group-values]
     (swap! current-neighborhood assoc :respondent-count respondent-count)

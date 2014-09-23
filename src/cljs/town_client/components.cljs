@@ -86,31 +86,31 @@
 (defstatvisualisation future-visualisation
   town-client.config/master-template
   [:.choice-graphs [:.g-choice :.future]]
-  :.choice-line
+  :.choice-column :.choice-line :.choice-value
   [:verylikely :quitelikely :notsure :quiteunlikely :veryunlikely])
 
 (defstatvisualisation family-visualisation
   town-client.config/master-template
   [:.choice-graphs [:.g-choice :.family]]
-  :.choice-line
+  :.choice-column :.choice-line :.choice-value
   [:single :couple :withkids :group :other])
 
 (defstatvisualisation transport-visualisation
   town-client.config/master-template
   [:.choice-graphs [:.g-choice :.transport]]
-  :.choice-line
+  :.choice-column :.choice-line :.choice-value
   [:car :bike :walk :public])
 
 (defstatvisualisation age-visualisation
   town-client.config/master-template
   [:.choice-graphs [:.g-choice :.age]]
-  :.choice-line
+  :.choice-column :.choice-line :.choice-value
   [:0 :16 :20 :25 :30 :40 :50 :60 :70])
 
 (defstatvisualisation opinion-visualisation
   town-client.config/master-template
   [:.g-value-questions :.value-questions]
-  :.value-question-graphic-spacer
+  :.value-question :.value-question-graphic-spacer :.nonexistent
   [:agree_add_density
    :agree_add_my_area_density_for_less_cars
    :agree_bulevardisation
@@ -161,7 +161,6 @@
                   (set-attr :style {:height "300px"}))
    }
   )
-
 
 (defsnippet neighborhood-header "public/kaupunginosa.html"
   [:.page-header]

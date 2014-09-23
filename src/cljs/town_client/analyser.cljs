@@ -47,7 +47,3 @@
   (into {}
         (map (partial divide (count data))
              (totals data))))
-
-(defn scale-key [data-key]
-  (keyword (clojure.string/replace data-key "scale_" "")))
-

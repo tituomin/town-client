@@ -3,7 +3,6 @@
    [reagent.core :as reagent :refer [atom]]
    [clojure.zip :as zip]
    [town-client.language :as language]
-   [town-client.analyser :as analyser]
    [town-client.config :refer [aggregates]]))
 
 (def app-state
@@ -67,6 +66,9 @@
     "probability_stay_five_years" :future-accommodation
    })
 
+(defn scale-key [data-key]
+  (keyword (clojure.string/replace data-key "scale_" "")))
+
 (defn process-stats [respondent-count answers scales]
   ; Clear any previous results so keys missing from current
   ; neighborhood do not persist.
@@ -81,7 +83,7 @@
                      (keyword (str key)))
            (/ (* 100 value) respondent-count)))
   (reset! (app-state :opinions)
-          (into {} (map (fn [[k v]] [(analyser/scale-key k) v])) scales)))
+          (into {} (map (fn [[k v]] [(scale-key k) v])) scales)))
 
 
 (defn process-neighborhood [neighborhood]

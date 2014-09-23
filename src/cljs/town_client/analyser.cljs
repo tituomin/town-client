@@ -3,11 +3,10 @@
 
 (def data (atom {}))
 
-(defn counts
-  [values]
+(defn counts [values]
   (reduce
    (fn [results key]
-     (let [key     (or key 0)
+     (let [key (or key 0)
            current (or (results key) 0)]
        (assoc results key (inc current))))
     {} values))

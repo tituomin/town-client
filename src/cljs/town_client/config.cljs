@@ -15,31 +15,42 @@
 (def front-page-map-styles
   #js[
       #js{
-       "stylers"
-       #js[#js{"visibility" "off"}
-           #js{ "hue" "#00ffe6"}
-           #js{ "saturation" -20}]}
-      #js{"featureType" "road"
-       "elementType" "geometry"
-       "stylers" #js[
-                 #js{ "lightness" 100 }
-                 #js{ "visibility" "simplified" }
-                 ]
-       }
-      #js{
-       "featureType" "road",
-       "elementType" "labels"
+       "featureType" "all",
        "stylers" #js[
                  #js{ "visibility" "off" }
                  ]
        }
-      #js{
-          "featureType" "water"
-          "stylers" #js[
-                      #js{"visibility" "simple"}
-                      #js{"color" "#000000"}
-                      ]
-          }
-
       ]
 )
+
+;; (def front-page-map-styles
+;;   #js[
+;;       #js{
+;;        "stylers"
+;;        #js[#js{"visibility" "off"}
+;;            #js{ "hue" "#00ffe6"}
+;;            #js{ "saturation" -20}]}
+;;       #js{"featureType" "road"
+;;        "elementType" "geometry"
+;;        "stylers" #js[
+;;                  #js{ "lightness" 100 }
+;;                  #js{ "visibility" "simplified" }
+;;                  ]
+;;        }
+;;       #js{
+;;        "featureType" "road",
+;;        "elementType" "labels"
+;;        "stylers" #js[
+;;                  #js{ "visibility" "off" }
+;;                  ]
+;;        }
+;;       #js{
+;;           "featureType" "water"
+;;           "stylers" #js[
+;;                       #js{"visibility" "simple"}
+;;                       #js{"color" "#000000"}
+;;                       ]
+;;           }
+
+;;       ]
+;; )

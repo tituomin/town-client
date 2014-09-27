@@ -38,13 +38,14 @@
   [id]
   (let [helsinki-center (google.maps.LatLng. 60.1143400903318 25.0171297094567)
         helsinki-bounds (google.maps.LatLngBounds.
-                         (google.maps.LatLng. (+ 0.202 59.9224) (+ 24.7828 0.1))
-                         (google.maps.LatLng. (- 60.2978 0.05) (- 25.2544 0.1)))
+                         (google.maps.LatLng. (+ 59.9224 0.20) (+ 24.7828 0.045))
+                         (google.maps.LatLng. (- 60.2978 0.0003) (+ 25.2544 0)))
         map-opts #js{"center" helsinki-center
                      "panControl" false
-                     "zoom" 10
+                     ;"zoom" 10
                      "draggable" false
                      "scrollwheel" false
+                     "backgroundColor" "rgb(255, 255, 255)"
                      "zoomControl" false
                      "mapTypeControl" false
                      "scaleControl" false
@@ -57,7 +58,6 @@
         el (sel1 selector)
         get-geometry (fn [nhood]
                        (-> nhood :geometry (get "coordinates")))
-        skatta (-> (@state/neighborhoods 384) :geometry (get "coordinates"))
         gmap (google.maps.Map. el map-opts)
         features (map (fn [[key nhood]]
                         (google.maps.Data.Feature.
@@ -70,13 +70,28 @@
                              :properties
                              #js{"name" (:name nhood)
                                  }}
-        )) @state/neighborhoods)
-        ]
+        )) @state/neighborhoods)]
     (doseq [feature features]
       (.add (.-data gmap) feature))
+    (.loadGeoJson (.-data gmap) "meri.geojson")
     (.addListener js/google.maps.event (.-data gmap) "click"
                   #(choose-neighborhood (.getId (.-feature %))))
-    (.setStyle (.-data gmap) #js{:fillColor "#FF0000" :strokeWeight 2})
+    (.addDomListener js/google.maps.event js/window "resize"
+                     (fn []
+                       (let [center (.getCenter gmap)]
+                         (.trigger js/google.maps.event gmap "resize")
+                         (.setCenter gmap center)
+                         (.fitBounds gmap helsinki-bounds))))
+    (.setStyle (.-data gmap) (fn [feature]
+                               (let [fid (.getProperty feature "fid")]
+                                 (if
+                                     (= fid "m_meri.0")
+                                   #js{:fillColor "#444444" :fillOpacity 1
+                                       :strokeWeight 0 :zIndex 100}
+                                   #js{:fillColor "#FF0000"
+                                       :strokeWeight 1 :zIndex 50
+                                       :strokeOpacity 0.3}))))
+
 ;    (.setCenter gmap helsinki-center (.getBoundsZoomLevel helsinki-bounds))
 ;    (.panToBounds gmap helsinki-bounds)    
     (.fitBounds gmap helsinki-bounds)
@@ -104,14 +119,14 @@
                           feature-id (.getId feature)
                           old-feature-id (:id current-feature)
                           ]
-                      (swap! current-feature assoc :id feature-id :name name)
-                      (.overrideStyle (.-data gmap) feature #js{:fillColor "#00FF00"})
-                      (.log js/console (:name @current-feature))
-                      (.addListenerOnce js/google.maps.event (.-data gmap) "mouseout"
-                                        #(do
-                                           (reset! current-feature {})
-                                           (.revertStyle (.-data gmap) feature))
-                                        ))))
+                      (when-not (.getProperty feature "fid")
+                        (swap! current-feature assoc :id feature-id :name name)
+                        (.overrideStyle (.-data gmap) feature #js{:fillColor "#00FF00"})
+                        ;(.log js/console (:name @current-feature))
+                        (.addListenerOnce js/google.maps.event (.-data gmap) "mouseout"
+                                          #(do
+                                             (reset! current-feature {})
+                                             (.revertStyle (.-data gmap) feature)))))))
     gmap))
 
 (defn icon

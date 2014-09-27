@@ -211,7 +211,7 @@
   []
   {[:#neighborhood-map] (do->
                          (content (town-map nil))
-                         (set-attr :style {:height "800px"}))
+                         (set-attr :style {:height "600px" :width "100%"}))
 })
 
 (defn init []

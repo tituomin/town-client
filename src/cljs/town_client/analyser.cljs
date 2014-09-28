@@ -39,10 +39,10 @@
         reducer (summer scale-keys)]
     (reduce reducer data)))
 
-(defn divide [divisor [k v]]
+(defn division [divisor [k v]]
   [k (/ v divisor)])
 
 (defn averages [data]
   (into {}
-        (map (partial divide (count data))
+        (map (partial division (count data))
              (totals data))))

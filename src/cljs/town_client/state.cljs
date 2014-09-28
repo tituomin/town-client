@@ -28,6 +28,9 @@
 (def current-neighborhood
   (atom {:genetive "Kenen"}))
 
+(def search-input
+  (atom nil))
+
 (def visualisation-key
   { "joukkoliikenne" :public
     "henkiloauto" :car

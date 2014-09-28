@@ -6,7 +6,7 @@
    [clojure.string]
    [kioo.core]
    [clojure.browser.repl]
-   [kioo.reagent :refer [content set-attr do-> substitute listen append]]
+   [kioo.reagent :refer [content set-attr set-class add-class remove-class do-> substitute listen append]]
    [reagent.core :as reagent :refer [atom]])
   (:require-macros [kioo.reagent :refer [defsnippet deftemplate]]
                    [town-client.macros :refer [defstatvisualisation]]))
@@ -194,9 +194,41 @@
   [neighborhoods]
   {[root] (content nil)})
 
+(defsnippet autocomplete-menu-item "public/index.html"
+  [[:.neighborhood-autocomplete-menu-item first-of-type]]
+  [text]
+  {[root] (content @text)})
+
+(defsnippet autocomplete-menu "public/index.html"
+  [[:.g-info-section :.neighborhood-input] :.neighborhood-autocomplete-menu]
+  [results]
+  {[root] (do->
+           (set-attr :style {:display (if (< 0 (count results)) :block :none)})
+           (set-attr :data-count (count results))
+           (content (map autocomplete-menu-item results)))})
+
 (deftemplate landing-page "public/index.html"
   []
-  {[:#neighborhood-map] (do->
+  {[:header.site-header :.site-navigation] (substitute "")
+   [[:.g-info-section :.neighborhood-input] :#neighborhood-text-input]
+   (let [name (:name @state/current-neighborhood)
+         text-value @state/search-input]
+     (do->
+      (set-attr :value (or text-value name "Kirjoita hakusana"))
+      (if (nil? name)
+        (remove-class "has-neighborhood")
+        (add-class "has-neighborhood"))
+      (if (nil? text-value)
+        (remove-class "has-text")
+        (add-class "has-text"))
+      (listen :on-change #(reset! state/search-input (.. % -target -value)))
+      (listen :on-focus #(reset! state/search-input ""))
+      (listen :on-blur #(reset! state/search-input nil))))
+   [[:.g-info-section :.neighborhood-input] :.neighborhood-autocomplete-menu]
+   (substitute (autocomplete-menu (if (clojure.string/blank? @state/search-input)
+                                    []
+                                    (repeat 4 state/search-input))))
+   [:#neighborhood-map] (do->
                          (content (town-map nil))
                          (set-attr :style {:height "600px" :width "100%"}))
 })

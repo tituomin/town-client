@@ -47,13 +47,13 @@
                      "scrollwheel" false
                      "backgroundColor" "rgb(255, 255, 255)"
                      "zoomControl" false
+                     "disableDoubleClickZoom" true
                      "mapTypeControl" false
                      "scaleControl" false
                      "streetViewControl" false
                      "overviewMapControl" false
                      "styles" config/front-page-map-styles
                      }
-        current-feature (atom {})
         selector (str "#" id)
         el (sel1 selector)
         get-geometry (fn [nhood]
@@ -106,26 +106,21 @@
 ;; });
     ;; (.addListenerOnce js/google.maps.event gmap "bounds_changed" #(do (.setZoom gmap 11)
     ;;                                              (.log js/console %)))
-    (.addListener
-     js/google.maps.event
-     (.-data gmap) "mousemove"
-     #(swap! current-feature assoc :position (.-latLng %))
-     )
     (.addListener js/google.maps.event (.-data gmap) "mouseover"
                   (fn [ob]
                     (let [feature (.-feature ob)
                           name (.getProperty feature "name")
                           position (.-latLng ob)
                           feature-id (.getId feature)
-                          old-feature-id (:id current-feature)
+                          old-feature-id (:id @state/current-neighborhood)
                           ]
                       (when-not (.getProperty feature "fid")
-                        (swap! current-feature assoc :id feature-id :name name)
+                        (swap! state/current-neighborhood assoc :id feature-id :name name)
                         (.overrideStyle (.-data gmap) feature #js{:fillColor "#00FF00"})
                         ;(.log js/console (:name @current-feature))
                         (.addListenerOnce js/google.maps.event (.-data gmap) "mouseout"
                                           #(do
-                                             (reset! current-feature {})
+                                             (reset! state/current-neighborhood {})
                                              (.revertStyle (.-data gmap) feature)))))))
     gmap))
 

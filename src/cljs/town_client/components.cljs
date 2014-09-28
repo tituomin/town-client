@@ -207,17 +207,28 @@
            (set-attr :data-count (count results))
            (content (map autocomplete-menu-item results)))})
 
+(defsnippet neighborhood-name "public/index.html"
+  [[:.g-info-section :.neighborhood-map] :#neighborhood-name]
+  [current-neighborhood mouse-cursor]
+  {[root] (do->
+           (set-attr :style {:left (+ 20 (or (:x @mouse-cursor) 0)) :top (- (or (:y @mouse-cursor) 0) 5)})
+           (content (:name @current-neighborhood))
+           )})
+
+
 (deftemplate landing-page "public/index.html"
   []
   {[:header.site-header :.site-navigation] (substitute "")
+   [:#neighborhood-map] (do->
+                         (content (town-map nil))
+                         (set-attr :style {:height "600px" :width "100%"}))
+   [[:.g-info-section :.neighborhood-map] :#neighborhood-name]
+   (substitute (neighborhood-name state/current-neighborhood state/mouse-cursor))
    [[:.g-info-section :.neighborhood-input] :#neighborhood-text-input]
-   (let [name (:name @state/current-neighborhood)
+   (let [;name (:name @state/current-neighborhood)
          text-value @state/search-input]
      (do->
-      (set-attr :value (or text-value name "Kirjoita hakusana"))
-      (if (nil? name)
-        (remove-class "has-neighborhood")
-        (add-class "has-neighborhood"))
+      (set-attr :value (or text-value "Kirjoita hakusana"))
       (if (nil? text-value)
         (remove-class "has-text")
         (add-class "has-text"))
@@ -228,15 +239,11 @@
    (substitute (autocomplete-menu (if (clojure.string/blank? @state/search-input)
                                     []
                                     (repeat 4 state/search-input))))
-   [:#neighborhood-map] (do->
-                         (content (town-map nil))
-                         (set-attr :style {:height "600px" :width "100%"}))
 })
 
 (defn init []
   (reagent/render-component [neighborhood-page]
-                            (.getElementById js/document "content-wrap"))
-  )
+                            (.getElementById js/document "content-wrap")))
 
 (defn init-front []
   (reagent/render-component [head "Kenen kaupunki"]

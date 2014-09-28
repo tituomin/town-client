@@ -30,6 +30,10 @@
 
 (def search-input
   (atom nil))
+(def mouse-cursor
+  (atom {:y 0 :x 0}))
+(defn set-cursor [{:keys [x y]}]
+  (swap! mouse-cursor assoc :x x :y y))
 
 (def visualisation-key
   { "joukkoliikenne" :public

@@ -31,13 +31,13 @@
       (fetch-neighborhood data-channel nid)
       (fetch-respondents data-channel nid)
       (doseq [x (flatten (map seq (vals aggregates)))]
-        (fetch-answers data-channel nid x)))))
+        (fetch-answers data-channel nid x)))
+    :mousemove
+    (state/set-cursor intent)))
 
 (defn category-to-map-id
   [category]
   (first (first (filter (fn [[k v]] (v category)) aggregates))))
-
-(def app-state (atom {}))
 
 (defn category [data]
   (if (or (nil? data) (empty? (data "features")))
@@ -132,6 +132,7 @@
   (let [data-channel (chan)
         user-channel (chan)
         incomplete-channel (chan)]
+
     (.listen goog.events
              js/window "hashchange"
              #(async/put! user-channel
@@ -139,7 +140,14 @@
                            (subs
                           (-> % .-currentTarget
                               .-location .-hash) 1))))
-    
+    (set! (.-onmousemove js/window)
+             (fn [e]
+               #_(.log js/console e)
+               (async/put!
+                user-channel
+               {:type :mousemove :x (.-pageX e) :y (.-pageY e)})
+               ))
+
     (fetch-all-neighborhoods data-channel)
     (receive-partial-data incomplete-channel data-channel)
     (go 

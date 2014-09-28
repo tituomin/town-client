@@ -92,20 +92,7 @@
                                        :strokeWeight 1 :zIndex 50
                                        :strokeOpacity 0.3}))))
 
-;    (.setCenter gmap helsinki-center (.getBoundsZoomLevel helsinki-bounds))
-;    (.panToBounds gmap helsinki-bounds)    
     (.fitBounds gmap helsinki-bounds)
-;; map_center = bounds.getCenter();
-;; map.setCenter(map_center);
-;; map.panToBounds(bounds);
-;; map.fitBounds(bounds);
-;; google.maps.event.addListenerOnce(yourMap, 'bounds_changed', function(event) {
-;;   if (this.getZoom() > 15) {
-;;     this.setZoom(15);
-;;   }
-;; });
-    ;; (.addListenerOnce js/google.maps.event gmap "bounds_changed" #(do (.setZoom gmap 11)
-    ;;                                              (.log js/console %)))
     (.addListener js/google.maps.event (.-data gmap) "mouseover"
                   (fn [ob]
                     (let [feature (.-feature ob)
@@ -114,10 +101,10 @@
                           feature-id (.getId feature)
                           old-feature-id (:id @state/current-neighborhood)
                           ]
-                      (when-not (.getProperty feature "fid")
+                      (when-not (.getProperty feature "fid") ; is sea
+                        (reset! state/current-neighborhood {})
                         (swap! state/current-neighborhood assoc :id feature-id :name name)
                         (.overrideStyle (.-data gmap) feature #js{:fillColor "#00FF00"})
-                        ;(.log js/console (:name @current-feature))
                         (.addListenerOnce js/google.maps.event (.-data gmap) "mouseout"
                                           #(do
                                              (reset! state/current-neighborhood {})

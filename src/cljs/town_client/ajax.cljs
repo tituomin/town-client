@@ -10,8 +10,7 @@
   (:require-macros [cljs.core.async.macros :as m :refer [go alt!]]))
 
 (def default-headers
-  (goog.structs.Map. #js{"Accept" "application/json"})
-  )
+  (goog.structs.Map. #js{"Accept" "application/json"}))
 
 (def pool
   (goog.net.XhrIoPool. default-headers))

@@ -173,19 +173,6 @@
    [:.header-responders-count :.responders-count] (content (:respondent-count neighborhood))
    })
 
-(def foo (atom
-          {:agree_add_density 0
-           :agree_add_my_area_density_for_less_cars 0
-           :agree_bulevardisation 0
-           :agree_high_rise 0
-           :agree_suburbs_build_near_stations 0
-           :enjoy_culture_urban_meetings 0
-           :enjoy_metropolis_fascinating_possibilities 0
-           :enjoy_outdoors_large_woods 0
-           :my_area_could_be_built_more 0
-           :prefer_daily_shopping_near 0
-           :would_use_rail_transport_more 0
-           }))
 
 (deftemplate neighborhood-page "public/kaupunginosa.html" []
   {[:head]
@@ -226,7 +213,22 @@
                             (.getElementById js/document "content-wrap")))
 
 
+; ----- REPL testing -----
+
 #_(
+   (def foo (atom
+             {:agree_add_density 0
+              :agree_add_my_area_density_for_less_cars 0
+              :agree_bulevardisation 0
+              :agree_high_rise 0
+              :agree_suburbs_build_near_stations 0
+              :enjoy_culture_urban_meetings 0
+              :enjoy_metropolis_fascinating_possibilities 0
+              :enjoy_outdoors_large_woods 0
+              :my_area_could_be_built_more 0
+              :prefer_daily_shopping_near 0
+              :would_use_rail_transport_more 0
+              }))
    (reset! state/neighborhoods {1 {:name "foo" :id 1 :prev nil :next nil}})
    (reset! (:future-accommodation app-state) {:verylikely 0
          :quitelikely 0

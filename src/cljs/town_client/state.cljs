@@ -145,9 +145,7 @@
   [s] (clojure.string/split s #"[- ]"))
 
 (defn index-neighborhoods [neighborhoods]
-  ; todo: multiple hits per token
-  ; (reduce)
-  (into {} (for [n neighborhoods
+  (into [] (for [n neighborhoods
                  token (tokenizer (:name n))]
              [((apply comp filters) token) (:id n)])))
 

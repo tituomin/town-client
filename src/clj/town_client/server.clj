@@ -50,10 +50,12 @@
   (resources "/")
   (not-found "Page not found"))
 
-(defn clojurescript []
-  (def repl-env (reset! cemerick.austin.repls/browser-repl-env
-                        (cemerick.austin/repl-env)))
-  (cemerick.austin.repls/cljs-repl repl-env))
+
+(defn headless []
+  (cemerick.piggieback/cljs-repl :repl-env (cemerick.austin/exec-env)))
+
+; Above: headless repl
+; Below: browser base environment and repl
 
 (def system
   "A Var containing an object representing the application under

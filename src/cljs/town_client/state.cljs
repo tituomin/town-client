@@ -128,19 +128,39 @@
 (defn vector-to-array [el]
   (if (vector? el)
     (to-array (map vector-to-array el))
-    el)
-  )
+    el))
+
+(defn replacer [from to]
+  (fn [s] (clojure.string/replace s from to)))
+
+(def filters
+  (conj (apply vector
+               (map #(apply replacer %)
+                    [["å" "a"]
+                     ["ä" "a"]
+                     ["ö" "o"]]))
+        clojure.string/lower-case))
+
+(defn tokenizer
+  [s] (clojure.string/split s #"[- ]"))
+
+(defn index-neighborhoods [neighborhoods]
+  ; todo: multiple hits per token
+  ; (reduce)
+  (into {} (for [n neighborhoods
+                 token (tokenizer (:name n))]
+             [((apply comp filters) token) (:id n)])))
 
 
-(defn clj->js
-  "Recursively transforms ClojureScript maps into Javascript objects,
-other ClojureScript colls into JavaScript arrays, and ClojureScript
-keywords into JavaScript strings."
-  [x]
-  (cond
-   (string? x) x
-   (keyword? x) (name x)
-   (map? x) (.strobj (reduce (fn [m [k v]]
-                               (assoc m (clj->js k) (clj->js v))) {} x))
-   (coll? x) (apply array (map clj->js x))
-   :else x))
+;; (defn clj->js
+;;   "Recursively transforms ClojureScript maps into Javascript objects,
+;; other ClojureScript colls into JavaScript arrays, and ClojureScript
+;; keywords into JavaScript strings."
+;;   [x]
+;;   (cond
+;;    (string? x) x
+;;    (keyword? x) (name x)
+;;    (map? x) (.strobj (reduce (fn [m [k v]]
+;;                                (assoc m (clj->js k) (clj->js v))) {} x))
+;;    (coll? x) (apply array (map clj->js x))
+;;    :else x))

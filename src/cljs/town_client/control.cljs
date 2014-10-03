@@ -33,7 +33,9 @@
       (doseq [x (flatten (map seq (vals aggregates)))]
         (fetch-answers data-channel nid x)))
     :mousemove
-    (state/set-cursor intent)))
+    (state/set-cursor intent)
+    :highlight-neighborhood
+      (map/highlight-neighborhood (:id intent))))
 
 (defn category-to-map-id
   [category]
@@ -73,6 +75,8 @@
       ; no id, got all neighborhoods
       (do
         (reset! state/neighborhoods (process-neighborhoods (:results data)))
+        (reset! state/autocomplete-index
+                (state/index-neighborhoods (vals @state/neighborhoods)))
         ; todo: move init hash handling elsewhere?
         (let [init-hash (-> js/window .-location .-hash)]
           (when (not (clojure.string/blank? init-hash))
@@ -128,9 +132,8 @@
 (defn neighborhood-intent [id]
   {:type :newlocation, :location id })
 
-(defn init []
+(defn init [user-channel]
   (let [data-channel (chan)
-        user-channel (chan)
         incomplete-channel (chan)]
 
     (.listen goog.events

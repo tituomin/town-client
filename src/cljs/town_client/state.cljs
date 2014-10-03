@@ -25,6 +25,8 @@
          {} (map (fn [pair] [(first pair) {}])
                  aggregates))))
 
+(def autocomplete-index (atom nil))
+
 (def current-neighborhood
   (atom {:genetive "Kenen"}))
 
@@ -134,31 +136,28 @@
   (fn [s] (clojure.string/replace s from to)))
 
 (def filters
-  (conj (apply vector
+  [clojure.string/lower-case]
+  #_(conj (apply vector
                (map #(apply replacer %)
                     [["å" "a"]
                      ["ä" "a"]
                      ["ö" "o"]]))
         clojure.string/lower-case))
 
-(defn tokenizer
+(defn tokenize
   [s] (clojure.string/split s #"[- ]"))
 
 (defn index-neighborhoods [neighborhoods]
   (into [] (for [n neighborhoods
-                 token (tokenizer (:name n))]
+                 token (tokenize (:name n))]
              [((apply comp filters) token) (:id n)])))
 
+(defn index-find [index query]
+  (let [tokens
+        (map (apply comp filters)
+             (tokenize query))]
+    (apply clojure.set/intersection (for [token tokens]
+      (set (map second (index-find-token index token)))))))
 
-;; (defn clj->js
-;;   "Recursively transforms ClojureScript maps into Javascript objects,
-;; other ClojureScript colls into JavaScript arrays, and ClojureScript
-;; keywords into JavaScript strings."
-;;   [x]
-;;   (cond
-;;    (string? x) x
-;;    (keyword? x) (name x)
-;;    (map? x) (.strobj (reduce (fn [m [k v]]
-;;                                (assoc m (clj->js k) (clj->js v))) {} x))
-;;    (coll? x) (apply array (map clj->js x))
-;;    :else x))
+(defn index-find-token [index substr]
+  (filter #(re-find (re-pattern (str "^" substr)) (first %)) index))

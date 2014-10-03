@@ -3,6 +3,7 @@
    [town-client.util :refer [log-v log]]
    [town-client.state :as state :refer [app-state]]
    [town-client.language :as language]
+   [cljs.core.async :as async]
    [clojure.string]
    [kioo.core]
    [clojure.browser.repl]
@@ -196,16 +197,22 @@
 
 (defsnippet autocomplete-menu-item "public/index.html"
   [[:.neighborhood-autocomplete-menu-item first-of-type]]
-  [text]
-  {[root] (content @text)})
+  [user-channel neighborhood]
+  {[root] (do->
+           (content (:name neighborhood))
+           (set-attr :href (str "#" (:id neighborhood)))
+           (listen :onMouseOver #(async/put! user-channel {:type :highlight-neighborhood :id (:id neighborhood)})))})
 
 (defsnippet autocomplete-menu "public/index.html"
   [[:.g-info-section :.neighborhood-input] :.neighborhood-autocomplete-menu]
-  [results]
-  {[root] (do->
-           (set-attr :style {:display (if (< 0 (count results)) :block :none)})
-           (set-attr :data-count (count results))
-           (content (map autocomplete-menu-item results)))})
+  [user-channel index neighborhoods]
+  {[root] (let [results
+                (for [nid (state/index-find @index @state/search-input)]
+                  (@state/neighborhoods nid))]
+            (do->
+             (set-attr :style {:display (if (< 0 (count results)) :block :none)})
+             (set-attr :data-count (count results))
+             (content (map (partial autocomplete-menu-item user-channel) (sort-by :name results)))))})
 
 (defsnippet neighborhood-name "public/index.html"
   [[:.g-info-section :.neighborhood-map] :#neighborhood-name]
@@ -217,7 +224,7 @@
 
 
 (deftemplate landing-page "public/index.html"
-  []
+  [user-channel]
   {[:header.site-header :.site-navigation] (substitute "")
    [:#neighborhood-map] (do->
                          (content (town-map nil))
@@ -234,23 +241,20 @@
         (add-class "has-text"))
       (listen :on-change #(reset! state/search-input (.. % -target -value)))
       (listen :on-focus #(reset! state/search-input ""))
-      (listen :on-blur #(reset! state/search-input nil))))
+      #_(listen :on-blur #(reset! state/search-input nil))))
    [[:.g-info-section :.neighborhood-input] :.neighborhood-autocomplete-menu]
-   (substitute (autocomplete-menu (if (clojure.string/blank? @state/search-input)
-                                    []
-                                    (repeat 4 state/search-input))))
-})
+   (substitute (autocomplete-menu user-channel state/autocomplete-index state/search-input))})
 
 (defn init []
   (reagent/render-component [neighborhood-page]
                             (.getElementById js/document "content-wrap")))
 
-(defn init-front []
-  (reagent/render-component [head "Kenen kaupunki"]
-                             (.item (.getElementsByTagName js/document "head") 0))
-  (reagent/render-component [landing-page]
-                            (.getElementById js/document "content-wrap")))
-
+(defn init-front [user-channel]
+  (fn []
+    (reagent/render-component [head "Kenen kaupunki"]
+                              (.item (.getElementsByTagName js/document "head") 0))
+    (reagent/render-component [landing-page user-channel]
+                              (.getElementById js/document "content-wrap"))))
 
 ; ----- REPL testing -----
 

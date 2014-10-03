@@ -34,6 +34,14 @@
 (defn choose-neighborhood [id]
   (aset (.-location js/window) "hash" id))
 
+(defn highlight-feature [map feature]
+  (.overrideStyle (.-data map) feature #js{:fillColor "#00FF00"}))
+
+(defn highlight-neighborhood
+  [nid] (let [gmap (@maps "neighborhood-map")
+              feature (.getFeatureById (.-data gmap) nid)]
+          (highlight-feature gmap feature)))
+
 (defn add-neighborhood-map!
   [id]
   (let [helsinki-center (google.maps.LatLng. 60.1143400903318 25.0171297094567)
@@ -56,9 +64,9 @@
                      }
         selector (str "#" id)
         el (sel1 selector)
+        gmap (google.maps.Map. el map-opts)
         get-geometry (fn [nhood]
                        (-> nhood :geometry (get "coordinates")))
-        gmap (google.maps.Map. el map-opts)
         features (map (fn [[key nhood]]
                         (google.maps.Data.Feature.
                          #js{:geometry
@@ -71,6 +79,7 @@
                              #js{"name" (:name nhood)
                                  }}
         )) @state/neighborhoods)]
+    (swap! maps assoc id gmap)
     (doseq [feature features]
       (.add (.-data gmap) feature))
     (.loadGeoJson (.-data gmap) "meri.geojson")
@@ -98,13 +107,11 @@
                     (let [feature (.-feature ob)
                           name (.getProperty feature "name")
                           position (.-latLng ob)
-                          feature-id (.getId feature)
-                          old-feature-id (:id @state/current-neighborhood)
-                          ]
+                          feature-id (.getId feature)]
                       (when-not (.getProperty feature "fid") ; is sea
-                        (reset! state/current-neighborhood {})
+                        ;(reset! state/current-neighborhood {})
                         (swap! state/current-neighborhood assoc :id feature-id :name name)
-                        (.overrideStyle (.-data gmap) feature #js{:fillColor "#00FF00"})
+                        (highlight-feature gmap feature)
                         (.addListenerOnce js/google.maps.event (.-data gmap) "mouseout"
                                           #(do
                                              (reset! state/current-neighborhood {})

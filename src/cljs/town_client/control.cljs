@@ -11,7 +11,7 @@
    [town-client.map :as map]
    [town-client.analyser :as analyser]
    [cljs.core.async :as async
-    :refer [<! >! chan close! sliding-buffer put! alts! timeout]])
+    :refer [<! >! filter< chan close! sliding-buffer put! mult tap alts! timeout]])
   (:require-macros [cljs.core.async.macros :as m :refer [go alt!]]))
 
 (defn fetch-all-neighborhoods [channel]
@@ -23,7 +23,7 @@
 (defn fetch-answers [channel nid category]
   (fetch-data channel "answers" {:category category :respondent__neighborhood nid}))
 
-(defn handle-user-input [intent data-channel user-channel]
+(defn handle-user-input [intent data-channel]
   (condp = (:type intent)
     :newlocation
     (let [nid (:location intent)]
@@ -35,7 +35,9 @@
     :mousemove
     (state/set-cursor intent)
     :highlight-neighborhood
-      (map/highlight-neighborhood (:id intent))))
+    (reset! state/current-neighborhood
+            (assoc (@state/neighborhoods (:id intent))
+              :source (:source intent)))))
 
 (defn category-to-map-id
   [category]
@@ -68,7 +70,7 @@
                   (merge e1 e2))]
                 [(:id neig) neig])))))
 
-(defn handle-new-data [data incomplete-channel user-channel]
+(defn handle-new-data [data incomplete-channel user-channel map-user-channel]
   (case (:resource-type data)
     :divisions
     (if (< 1 (count (:results data)))
@@ -83,8 +85,7 @@
             (async/put!
              user-channel
              (neighborhood-intent (subs init-hash 1)))))
-        (map/add-neighborhood-map! "neighborhood-map")
-        )
+        (map/add-neighborhood-map! "neighborhood-map" user-channel map-user-channel))
       ; specific neighborhood
     (state/process-neighborhood (first (:results data))))
 
@@ -132,13 +133,19 @@
 (defn neighborhood-intent [id]
   {:type :newlocation, :location id })
 
-(defn init [user-channel]
+(defn init [user-channel-original]
   (let [data-channel (chan)
-        incomplete-channel (chan)]
+        incomplete-channel (chan)
+        user-channel (chan)
+        map-user-chan (chan)
+        user-mult (mult user-channel-original)]
+
+    (tap user-mult map-user-chan)
+    (tap user-mult user-channel)
 
     (.listen goog.events
              js/window "hashchange"
-             #(async/put! user-channel
+             #(async/put! user-channel-original
                           (neighborhood-intent
                            (subs
                           (-> % .-currentTarget
@@ -147,7 +154,7 @@
              (fn [e]
                #_(.log js/console e)
                (async/put!
-                user-channel
+                user-channel-original
                {:type :mousemove :x (.-pageX e) :y (.-pageY e)})
                ))
 
@@ -157,5 +164,5 @@
       (while true
         (let [[value c] (alts! [user-channel data-channel])]
           (condp = c
-            data-channel (handle-new-data value incomplete-channel user-channel)
-            user-channel (handle-user-input value data-channel user-channel)))))))
+            data-channel (handle-new-data value incomplete-channel user-channel-original map-user-chan)
+            user-channel (handle-user-input value data-channel)))))))

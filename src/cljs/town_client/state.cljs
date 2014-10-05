@@ -29,6 +29,10 @@
 
 (def current-neighborhood
   (atom {:genetive "Kenen"}))
+(def selected-neighborhood
+  (atom {}))
+(def search-results
+  (atom []))
 
 (def search-input
   (atom nil))
@@ -161,3 +165,11 @@
 
 (defn index-find-token [index substr]
   (filter #(re-find (re-pattern (str "^" substr)) (first %)) index))
+
+(defn search-neighborhoods [input]
+  (reset! search-input input)
+  (let [results (for [nid (index-find @autocomplete-index @search-input)]
+                  (@neighborhoods nid))]
+    (reset! search-results results)
+    @search-results))
+

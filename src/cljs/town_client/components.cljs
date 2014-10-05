@@ -3,13 +3,15 @@
    [town-client.util :refer [log-v log]]
    [town-client.state :as state :refer [app-state]]
    [town-client.language :as language]
+   [town-client.intents :as intents]
    [cljs.core.async :as async]
    [clojure.string]
    [kioo.core]
    [clojure.browser.repl]
    [kioo.reagent :refer [content set-attr set-class add-class remove-class do-> substitute listen append]]
    [reagent.core :as reagent :refer [atom]])
-  (:require-macros [kioo.reagent :refer [defsnippet deftemplate]]
+  (:require-macros [cljs.core.async.macros :as m :refer [go alt!]]
+                   [kioo.reagent :refer [defsnippet deftemplate]]
                    [town-client.macros :refer [defstatvisualisation]]))
 
 (def template-path "public/kaupunginosa.html")
@@ -200,28 +202,42 @@
   [user-channel neighborhood]
   {[root] (do->
            (content (:name neighborhood))
+           (set-attr :key (:id neighborhood))
            (set-attr :href (str "#" (:id neighborhood)))
-           (listen :onMouseOver #(async/put! user-channel {:type :highlight-neighborhood :id (:id neighborhood)})))})
+           (listen :onMouseOut
+                   #(async/put! user-channel (intents/highlight-neighborhood
+                                              nil :menu)))
+           (listen :onMouseOver
+                   #(async/put! user-channel (intents/highlight-neighborhood
+                                              (:id neighborhood) :menu))))})
+
+(defn select-menu-item [channel item]
+  (async/put! channel (intents/highlight-neighborhood (:id item) :query)))
 
 (defsnippet autocomplete-menu "public/index.html"
   [[:.g-info-section :.neighborhood-input] :.neighborhood-autocomplete-menu]
-  [user-channel index neighborhoods]
-  {[root] (let [results
-                (for [nid (state/index-find @index @state/search-input)]
-                  (@state/neighborhoods nid))]
-            (do->
-             (set-attr :style {:display (if (< 0 (count results)) :block :none)})
-             (set-attr :data-count (count results))
-             (content (map (partial autocomplete-menu-item user-channel) (sort-by :name results)))))})
+  [user-channel index input]
+  {[root] (let [results @state/search-results
+                results-count (count results)
+                i @input]
+              (do->
+               (set-attr :style {:display (if (< 0 results-count) :block :none)})
+               (set-attr :data-count (count results))
+               (content (map (partial autocomplete-menu-item user-channel)
+                             (sort-by :name results))))
+              )})
 
 (defsnippet neighborhood-name "public/index.html"
   [[:.g-info-section :.neighborhood-map] :#neighborhood-name]
   [current-neighborhood mouse-cursor]
-  {[root] (do->
-           (set-attr :style {:left (+ 20 (or (:x @mouse-cursor) 0)) :top (- (or (:y @mouse-cursor) 0) 5)})
-           (content (:name @current-neighborhood))
-           )})
-
+  {[root] (condp = (:source @current-neighborhood)
+            :map
+            (do->
+             (set-attr :style {:display :block :left (+ 20 (or (:x @mouse-cursor) 0)) :top (- (or (:y @mouse-cursor) 0) 5)})
+             (content (:name @current-neighborhood))
+             )
+            (set-attr :style {:display :none}))
+            })
 
 (deftemplate landing-page "public/index.html"
   [user-channel]
@@ -231,15 +247,20 @@
                          (set-attr :style {:height "600px" :width "100%"}))
    [[:.g-info-section :.neighborhood-map] :#neighborhood-name]
    (substitute (neighborhood-name state/current-neighborhood state/mouse-cursor))
+   ;; var input = document.getElementById("textBoxId");
+   ;; input.value = "Cup of tea";
+   ;; input.setSelectionRange(0, 3); // Highlights "Cup"
+   ;; input.focus();
    [[:.g-info-section :.neighborhood-input] :#neighborhood-text-input]
    (let [;name (:name @state/current-neighborhood)
          text-value @state/search-input]
      (do->
-      (set-attr :value (or text-value "Kirjoita hakusana"))
+      (set-attr :value (if (= 1 (count @state/search-results)) (:name (first @state/search-results))
+                         (or text-value "Kirjoita hakusana")))
       (if (nil? text-value)
         (remove-class "has-text")
         (add-class "has-text"))
-      (listen :on-change #(reset! state/search-input (.. % -target -value)))
+      (listen :on-change #(state/search-neighborhoods (.-value (.-target %))))
       (listen :on-focus #(reset! state/search-input ""))
       #_(listen :on-blur #(reset! state/search-input nil))))
    [[:.g-info-section :.neighborhood-input] :.neighborhood-autocomplete-menu]
@@ -251,14 +272,16 @@
 
 (defn init-front [user-channel]
   (fn []
-    (reagent/render-component [head "Kenen kaupunki"]
-                              (.item (.getElementsByTagName js/document "head") 0))
-    (reagent/render-component [landing-page user-channel]
-                              (.getElementById js/document "content-wrap"))))
+      (reagent/render-component [head "Kenen kaupunki"]
+                                (.item (.getElementsByTagName js/document "head") 0))
+      (reagent/render-component [landing-page user-channel]
+                                (.getElementById js/document "content-wrap"))      )
+    )
 
 ; ----- REPL testing -----
 
 #_(
+   :component-did-update
    (def foo (atom
              {:agree_add_density 0
               :agree_add_my_area_density_for_less_cars 0

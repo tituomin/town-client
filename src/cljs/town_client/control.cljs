@@ -35,9 +35,10 @@
     :mousemove
     (state/set-cursor intent)
     :highlight-neighborhood
-    (reset! state/current-neighborhood
+    (do
+      (reset! state/current-neighborhood
             (assoc (@state/neighborhoods (:id intent))
-              :source (:source intent)))))
+              :source (:source intent))))))
 
 (defn category-to-map-id
   [category]

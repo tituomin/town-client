@@ -137,9 +137,9 @@
      (go (while true
            (let [intent (<! selections-chan)
                  current-nid (:id intent)]
-             (if current-nid
-               (highlight-neighborhood current-nid gmap)
-               (unhighlight-features! gmap))))))
+             (unhighlight-features! gmap)
+             (when current-nid
+               (highlight-neighborhood current-nid gmap))))))
 
     (->> js/google.maps.event
          (.addListener gmap "projection_changed"

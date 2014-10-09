@@ -1,6 +1,8 @@
 (ns town-client.state
   (:require
    [reagent.core :as reagent :refer [atom]]
+   [cljs.core.async :as async]
+   [town-client.intents :as intents]
    [clojure.zip :as zip]
    [town-client.language :as language]
    [town-client.config :refer [aggregates]]))
@@ -124,17 +126,18 @@
     (if (zip/end? z)
       (zip/root z) ; perhaps you can call zip/seq-zip or zip/vector-zip?
       (recur (zip/next (zip/edit z f z))))))
-;; Multiply by 100 every node in the tree
-(zip-map (fn [n nx] (if (vector? n) n (* n 100) )) (zip/vector-zip '[5 [10 20 30] [1 2 3] ]))
-;; Be careful! the returned result by zip/root is not a zipper anymore!
 
 (defn coords-to-google [coords]
-  (zip-map (fn [n nx] (if (vector? (first n)) n #js{:lng (first n) :lat (second n)})) (zip/vector-zip coords)))
+  (zip-map
+   (fn [n nx]
+     (if (vector? (first n)) n
+         #js{:lng (first n) :lat (second n)}))
+   (zip/vector-zip coords)))
 
 (defn vector-to-array [el]
   (if (vector? el)
-    (to-array (map vector-to-array el))
-    el))
+      (to-array (map vector-to-array el))
+      el))
 
 (defn replacer [from to]
   (fn [s] (clojure.string/replace s from to)))
@@ -166,10 +169,18 @@
 (defn index-find-token [index substr]
   (filter #(re-find (re-pattern (str "^" substr)) (first %)) index))
 
-(defn search-neighborhoods [input]
+(defn search-neighborhoods [input user-channel]
   (reset! search-input input)
-  (let [results (for [nid (index-find @autocomplete-index @search-input)]
-                  (@neighborhoods nid))]
+  (let [results
+        (for [nid (index-find @autocomplete-index @search-input)]
+          (@neighborhoods nid))]
     (reset! search-results results)
+    (if (= 1 (count results))
+      (async/put! user-channel
+                  (intents/highlight-neighborhood
+                   (:id (first results)) :menu))
+      (async/put! user-channel
+                  (intents/highlight-neighborhood
+                   nil :menu)))
     @search-results))
 

@@ -1,3 +1,4 @@
+
 (ns town-client.components
   (:require
    [town-client.util :refer [log-v log]]
@@ -204,9 +205,9 @@
            (content (:name neighborhood))
            (set-attr :key (:id neighborhood))
            (set-attr :href (str "#" (:id neighborhood)))
-           (listen :onMouseOut
-                   #(async/put! user-channel (intents/highlight-neighborhood
-                                              nil :menu)))
+           ;; (listen :onMouseOut
+           ;;         #(async/put! user-channel (intents/highlight-neighborhood
+           ;;                                    nil :menu)))
            (listen :onMouseOver
                    #(async/put! user-channel (intents/highlight-neighborhood
                                               (:id neighborhood) :menu))))})
@@ -221,7 +222,7 @@
                 results-count (count results)
                 i @input]
               (do->
-               (set-attr :style {:display (if (< 0 results-count) :block :none)})
+               (set-attr :style {:display (if (< 1 results-count) :block :none)})
                (set-attr :data-count (count results))
                (content (map (partial autocomplete-menu-item user-channel)
                              (sort-by :name results))))
@@ -253,15 +254,34 @@
    ;; input.focus();
    [[:.g-info-section :.neighborhood-input] :#neighborhood-text-input]
    (let [;name (:name @state/current-neighborhood)
-         text-value @state/search-input]
+         text-value @state/search-input
+         input-val (if (= 1 (count @state/search-results))
+                     (:name (first @state/search-results))
+                     (or text-value "Kirjoita hakusana"))
+         prefix-length (count text-value)]
      (do->
-      (set-attr :value (if (= 1 (count @state/search-results)) (:name (first @state/search-results))
-                         (or text-value "Kirjoita hakusana")))
-      (if (nil? text-value)
-        (remove-class "has-text")
-        (add-class "has-text"))
-      (listen :on-change #(state/search-neighborhoods (.-value (.-target %))))
+      (set-attr :value input-val)
+      (if (nil? text-value) (remove-class "has-text")
+          (add-class "has-text"))
+      (listen :on-change #(do (.log js/console "on-change")
+                           (state/search-neighborhoods (.-value (.-target %)) user-channel)))
       (listen :on-focus #(reset! state/search-input ""))
+      (listen :on-key-up #(when (= 8 (.-which %)) ; backspace
+                              ;; (if
+                              ;;     (and  
+                              ;;      (= 1 (count @state/search-results))
+                                   ;; #_(not= (count @state/search-input)
+                                   ;;         (count (:name (first @state/search-results))))
+;                                   )
+                                (state/search-neighborhoods
+                                 (subs text-value
+                                       0 (- (count text-value) 1)) user-channel)
+                                ))
+      (listen :on-render (fn [component]
+                           (let [in-el (.getDOMNode component)]
+                             (.log js/console (count text-value))
+                             (.log js/console (count input-val))
+                             (.setSelectionRange in-el prefix-length (count input-val)))))
       #_(listen :on-blur #(reset! state/search-input nil))))
    [[:.g-info-section :.neighborhood-input] :.neighborhood-autocomplete-menu]
    (substitute (autocomplete-menu user-channel state/autocomplete-index state/search-input))})

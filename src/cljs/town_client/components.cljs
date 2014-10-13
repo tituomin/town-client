@@ -200,11 +200,14 @@
 
 (defsnippet autocomplete-menu-item "public/index.html"
   [[:.neighborhood-autocomplete-menu-item first-of-type]]
-  [user-channel neighborhood]
+  [user-channel neighborhood index]
   {[root] (do->
            (content (:name neighborhood))
            (set-attr :key (:id neighborhood))
            (set-attr :href (str "#" (:id neighborhood)))
+           (if (= index (@state/search :selected))
+             (add-class "selected")
+             (remove-class "selected"))
            ;; (listen :onMouseOut
            ;;         #(async/put! user-channel (intents/highlight-neighborhood
            ;;                                    nil :menu)))
@@ -218,14 +221,13 @@
 (defsnippet autocomplete-menu "public/index.html"
   [[:.g-info-section :.neighborhood-input] :.neighborhood-autocomplete-menu]
   [user-channel index input]
-  {[root] (let [results @state/search-results
-                results-count (count results)
-                i @input]
+  {[root] (let [results (@state/search :results)
+                results-count (count results)]
               (do->
                (set-attr :style {:display (if (< 1 results-count) :block :none)})
                (set-attr :data-count (count results))
                (content (map (partial autocomplete-menu-item user-channel)
-                             (sort-by :name results))))
+                             results (range))))
               )})
 
 (defsnippet neighborhood-name "public/index.html"
@@ -240,6 +242,41 @@
             (set-attr :style {:display :none}))
             })
 
+(defsnippet neighborhood-search "public/index.html"
+  [[:.g-info-section :.neighborhood-input] :#neighborhood-text-input]
+  [search-state user-channel]
+  {[root] (let [text-value (@search-state :input)
+         input-val (if (= 1 (count (@search-state :results)))
+                     (:name (first (@search-state :results)))
+                     (or text-value ""))
+         prefix-length (count text-value)]
+     (do->
+      (set-attr :value input-val)
+      (if (nil? text-value) (remove-class "has-text")
+          (add-class "has-text"))
+      (listen :on-change #(state/search-neighborhoods (.-value (.-target %)) user-channel))
+      (listen :on-focus #(swap! search-state assoc :input ""))
+      (listen :on-render (fn [component]
+                            (let [in-el (.getDOMNode component)]
+                             (.setSelectionRange in-el prefix-length (count input-val)))))
+      (listen :on-key-down
+              #(condp = (.-which %)
+                 ;backspace
+                 8 (do
+                     (state/search-neighborhoods (subs text-value
+                            0 (- (count text-value) 1))
+                     (.preventDefault %) user-channel))
+                 13 (when (or
+                           (= 1 (count (@search-state :results)))
+                           (not (nil? (:id @state/current-neighborhood))))
+                      (async/put! user-channel
+                                  (intents/neighborhood-intent
+                                   (:id @state/current-neighborhood))))
+                 40 (state/select-next user-channel)
+                 38 (state/select-prev user-channel)
+                 nil))
+      #_(listen :on-blur #(reset! state/search-input nil))))})
+
 (deftemplate landing-page "public/index.html"
   [user-channel]
   {[:header.site-header :.site-navigation] (substitute "")
@@ -248,43 +285,10 @@
                          (set-attr :style {:height "600px" :width "100%"}))
    [[:.g-info-section :.neighborhood-map] :#neighborhood-name]
    (substitute (neighborhood-name state/current-neighborhood state/mouse-cursor))
-   ;; var input = document.getElementById("textBoxId");
-   ;; input.value = "Cup of tea";
-   ;; input.setSelectionRange(0, 3); // Highlights "Cup"
-   ;; input.focus();
    [[:.g-info-section :.neighborhood-input] :#neighborhood-text-input]
-   (let [;name (:name @state/current-neighborhood)
-         text-value @state/search-input
-         input-val (if (= 1 (count @state/search-results))
-                     (:name (first @state/search-results))
-                     (or text-value "Kirjoita hakusana"))
-         prefix-length (count text-value)]
-     (do->
-      (set-attr :value input-val)
-      (if (nil? text-value) (remove-class "has-text")
-          (add-class "has-text"))
-      (listen :on-change #(do (.log js/console "on-change")
-                           (state/search-neighborhoods (.-value (.-target %)) user-channel)))
-      (listen :on-focus #(reset! state/search-input ""))
-      (listen :on-key-up #(when (= 8 (.-which %)) ; backspace
-                              ;; (if
-                              ;;     (and  
-                              ;;      (= 1 (count @state/search-results))
-                                   ;; #_(not= (count @state/search-input)
-                                   ;;         (count (:name (first @state/search-results))))
-;                                   )
-                                (state/search-neighborhoods
-                                 (subs text-value
-                                       0 (- (count text-value) 1)) user-channel)
-                                ))
-      (listen :on-render (fn [component]
-                           (let [in-el (.getDOMNode component)]
-                             (.log js/console (count text-value))
-                             (.log js/console (count input-val))
-                             (.setSelectionRange in-el prefix-length (count input-val)))))
-      #_(listen :on-blur #(reset! state/search-input nil))))
+   (substitute (neighborhood-search state/search user-channel))
    [[:.g-info-section :.neighborhood-input] :.neighborhood-autocomplete-menu]
-   (substitute (autocomplete-menu user-channel state/autocomplete-index state/search-input))})
+   (substitute (autocomplete-menu user-channel (@state/search :index) (@state/search :input)))})
 
 (defn init []
   (reagent/render-component [neighborhood-page]

@@ -27,17 +27,17 @@
          {} (map (fn [pair] [(first pair) {}])
                  aggregates))))
 
-(def autocomplete-index (atom nil))
-
 (def current-neighborhood
   (atom {:genetive "Kenen"}))
 (def selected-neighborhood
   (atom {}))
-(def search-results
-  (atom []))
 
-(def search-input
-  (atom nil))
+(def search
+  (atom {:results []
+         :input nil
+         :index nil
+         :selected -1}))
+
 (def mouse-cursor
   (atom {:y 0 :x 0}))
 (defn set-cursor [{:keys [x y]}]
@@ -170,17 +170,35 @@
   (filter #(re-find (re-pattern (str "^" substr)) (first %)) index))
 
 (defn search-neighborhoods [input user-channel]
-  (reset! search-input input)
   (let [results
-        (for [nid (index-find @autocomplete-index @search-input)]
+        (for [nid (index-find (@search :index) input)]
           (@neighborhoods nid))]
-    (reset! search-results results)
-    (if (= 1 (count results))
-      (async/put! user-channel
-                  (intents/highlight-neighborhood
-                   (:id (first results)) :menu))
-      (async/put! user-channel
-                  (intents/highlight-neighborhood
-                   nil :menu)))
-    @search-results))
+    (if (and
+         #_(> (count input) 1)
+         (< (count results) 2)
+         (<= (count input) (count (@search :input)))
+         #_(or (= [] (@search :results))
+             (<= (count results) (count (@search :results)))))
+      (swap! search assoc :input input :results [])
+      (do (swap! search assoc :results (sort-by :name results) :input input :selected -1)
+          (if (= 1 (count results))
+            (async/put! user-channel
+                        (intents/highlight-neighborhood
+                         (:id (first results)) :menu))
+            (async/put! user-channel
+                        (intents/highlight-neighborhood
+                         nil :menu)))))))
 
+(defn select-index [user-channel next-fn cmp-fn cmp-val]
+  (swap! search
+        (fn [val]
+          (let [next-sel (cmp-fn cmp-val (next-fn (:selected val)))
+                sel-id (:id (nth (:results val) next-sel))]
+            (async/put! user-channel (intents/highlight-neighborhood sel-id :menu))
+            (assoc val :selected next-sel)))))
+
+(defn select-next [user-channel]
+  (select-index user-channel inc min (dec (count (:results @search)))))
+
+(defn select-prev [user-channel]
+  (select-index user-channel dec max 0))

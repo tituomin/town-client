@@ -6,6 +6,7 @@
    [town-client.components :as components]
    [town-client.data :refer [fetch-data]]
    [town-client.state :as state]
+   [town-client.intents :as intents]
    [town-client.util :refer [log-v log]]
    [town-client.templating :as tmpl]
    [town-client.map :as map]
@@ -78,14 +79,14 @@
       ; no id, got all neighborhoods
       (do
         (reset! state/neighborhoods (process-neighborhoods (:results data)))
-        (reset! state/autocomplete-index
+        (swap! state/search assoc :index
                 (state/index-neighborhoods (vals @state/neighborhoods)))
         ; todo: move init hash handling elsewhere?
         (let [init-hash (-> js/window .-location .-hash)]
           (when (not (clojure.string/blank? init-hash))
             (async/put!
              user-channel
-             (neighborhood-intent (subs init-hash 1)))))
+             (intents/neighborhood-intent (subs init-hash 1)))))
         (map/add-neighborhood-map! "neighborhood-map" user-channel map-user-channel))
       ; specific neighborhood
     (state/process-neighborhood (first (:results data))))
@@ -131,9 +132,6 @@
                   (dissoc data aggregate-id)))
          (recur new-keys new-data))))))
 
-(defn neighborhood-intent [id]
-  {:type :newlocation, :location id })
-
 (defn init [user-channel-original]
   (let [data-channel (chan)
         incomplete-channel (chan)
@@ -147,7 +145,7 @@
     (.listen goog.events
              js/window "hashchange"
              #(async/put! user-channel-original
-                          (neighborhood-intent
+                          (intents/neighborhood-intent
                            (subs
                           (-> % .-currentTarget
                               .-location .-hash) 1))))
